@@ -17,9 +17,14 @@ module mipscore_tb();
         repeat (50)
             begin
             bounce();
+       
+            if(pc_current==32'h00000030)
+            begin
+                $display ("Test Done");
+                $stop;
             end
-
-        $stop;
+            end
+        //$stop;
     end
     
     
