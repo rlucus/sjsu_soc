@@ -1,0 +1,15 @@
+main:	ADDI $a0, $zero, 0x0005
+	ADDI $a1, $zero, 0x0009
+	ADD $a2, $a1, $a0
+	SUB $a3, $a1, $a0
+	AND $t0, $a1, $a0
+	OR $t1, $a1, $a0
+	SLT $t2, $a0, $a1
+	SW $a0, 0x0000($zero)
+	LW $t3, 0x0000($zero)
+	JAL test
+	MULTU $a0, $a1
+	MFHI $t5
+	MFLO $t6
+test:	ADDI $t4, $zero, 0x0007
+	JR $ra
