@@ -86,18 +86,18 @@ module auxdec
     always @ (ctrl) {jump_reg, we_hi, we_lo, hi2reg, lo2reg, alu_ctrl} = ctrl;
     always @ (alu_op, funct)
         case (alu_op)
-            2'b00: ctrl = 8'b0_00_00_010; // add
-            2'b01: ctrl = 8'b0_00_00_110; // sub
+            2'b00: ctrl = 8'b0_0_0_0_0_010; // add
+            2'b01: ctrl = 8'b0_0_0_0_0_110; // sub
             default: case (funct)
-                6'b100000: ctrl = 8'b0_00_00_010; // ADD
-                6'b100010: ctrl = 8'b0_00_00_110; // SUB
-                6'b100100: ctrl = 8'b0_00_00_000; // AND
-                6'b100101: ctrl = 8'b0_00_00_001; // OR
-                6'b101010: ctrl = 8'b0_00_00_111; // SLT
-                6'b011001: ctrl = 8'b0_11_00_000; // MULTU
-                6'b010000: ctrl = 8'b0_00_10_000; // MFHI
-                6'b010010: ctrl = 8'b0_00_01_000; // MFLO
-                6'b001000: ctrl = 8'b1_00_00_000; // JR
+                6'b100000: ctrl = 8'b0_0_0_0_0_010; // ADD
+                6'b100010: ctrl = 8'b0_0_0_0_0_110; // SUB
+                6'b100100: ctrl = 8'b0_0_0_0_0_000; // AND
+                6'b100101: ctrl = 8'b0_0_0_0_0_001; // OR
+                6'b101010: ctrl = 8'b0_0_0_0_0_111; // SLT
+                6'b011001: ctrl = 8'b0_1_1_0_0_000; // MULTU
+                6'b010000: ctrl = 8'b0_0_0_1_0_000; // MFHI
+                6'b010010: ctrl = 8'b0_0_0_0_1_000; // MFLO
+                6'b001000: ctrl = 8'b1_0_0_0_0_000; // JR
                 default: ctrl = 8'bx;
             endcase
         endcase
