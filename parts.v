@@ -19,15 +19,19 @@ module signext
 endmodule
 
 module alu #(parameter wide = 8)
-(input [2:0] op, [wide-1:0] a, b, output zero, reg [wide-1:0] y);
+(input [3:0] op, [wide-1:0] a, b, [4:0] shiftamount, output zero, reg [wide-1:0] y);
     assign zero = (y == 'h0);
     always @ (op, a, b)
         case (op)
-            3'b000: y = a & b;
-            3'b001: y = a | b;
-            3'b010: y = a + b;
-            3'b110: y = a - b;
-            3'b111: y = (a < b) ? 1 : 0;
+            4'b0000: y = a & b;
+            4'b0001: y = a | b;
+            4'b0010: y = a + b;
+            4'b0011: y = ~(a | b);//NOR
+            4'b0100: y = b << shiftamount;//SLL
+            4'b0101: y = b >> shiftamount;//SRL
+            4'b0110: y = a - b;
+            4'b0111: y = (a < b) ? 1 : 0;
+            4'b1000: y = b >>> shiftamount;//SRA
             default: y = 'hx;
         endcase
 endmodule
@@ -81,23 +85,28 @@ module maindec
 endmodule
 
 module auxdec
-(input [1:0] alu_op, [5:0] funct, output reg jump_reg, we_hi, we_lo, hi2reg, lo2reg, reg [2:0] alu_ctrl);
-    reg [7:0] ctrl;
+(input [1:0] alu_op, [5:0] funct, output reg jump_reg, we_hi, we_lo, hi2reg, lo2reg, reg [3:0] alu_ctrl);
+    reg [8:0] ctrl;
+    //adjusting alucontrol
     always @ (ctrl) {jump_reg, we_hi, we_lo, hi2reg, lo2reg, alu_ctrl} = ctrl;
     always @ (alu_op, funct)
         case (alu_op)
             2'b00: ctrl = 8'b0_0_0_0_0_010; // add
             2'b01: ctrl = 8'b0_0_0_0_0_110; // sub
             default: case (funct)
-                6'b100000: ctrl = 8'b0_0_0_0_0_010; // ADD
-                6'b100010: ctrl = 8'b0_0_0_0_0_110; // SUB
-                6'b100100: ctrl = 8'b0_0_0_0_0_000; // AND
-                6'b100101: ctrl = 8'b0_0_0_0_0_001; // OR
-                6'b101010: ctrl = 8'b0_0_0_0_0_111; // SLT
-                6'b011001: ctrl = 8'b0_1_1_0_0_000; // MULTU
-                6'b010000: ctrl = 8'b0_0_0_1_0_000; // MFHI
-                6'b010010: ctrl = 8'b0_0_0_0_1_000; // MFLO
-                6'b001000: ctrl = 8'b1_0_0_0_0_000; // JR
+                6'b100000: ctrl = 9'b0_0_0_0_0_0010; // ADD
+                6'b100010: ctrl = 9'b0_0_0_0_0_0110; // SUB
+                6'b100100: ctrl = 9'b0_0_0_0_0_0000; // AND
+                6'b100101: ctrl = 9'b0_0_0_0_0_0001; // OR
+                6'b101010: ctrl = 9'b0_0_0_0_0_0111; // SLT
+                6'b011001: ctrl = 9'b0_1_1_0_0_0000; // MULTU
+                6'b010000: ctrl = 9'b0_0_0_1_0_0000; // MFHI
+                6'b010010: ctrl = 9'b0_0_0_0_1_0000; // MFLO
+                6'b001000: ctrl = 9'b1_0_0_0_0_0000; // JR
+                6'b011011: ctrl = 9'b0_0_0_0_0_0011;//NOR
+                6'b000000: ctrl = 9'b0_0_0_0_0_0100;//SLL
+                6'b000010: ctrl = 9'b0_0_0_0_0_0101;//SRL
+                6'b000011: ctrl = 9'b0_0_0_0_0_1000;//SRA
                 default: ctrl = 8'bx;
             endcase
         endcase
