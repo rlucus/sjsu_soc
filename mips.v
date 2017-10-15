@@ -4,7 +4,7 @@ module mips
  output        we_dm,
  output [31:0] pc_current, alu_out, wd_dm);    
     wire       pc_src, jump, link, jump_reg ,reg_dst, we_reg, alu_src, we_hi, we_lo, hi2reg, lo2reg, zero, dm2reg;
-    wire [2:0] alu_ctrl;
+    wire [3:0] alu_ctrl;
     datapath    DP (.clk(clk), .rst(rst), .pc_src(pc_src), .jump(jump), .link(link), .jump_reg(jump_reg) ,.reg_dst(reg_dst), .we_reg(we_reg), 
         .alu_src(alu_src), .we_hi(we_hi), .we_lo(we_lo), .hi2reg(hi2reg), .lo2reg(lo2reg), .dm2reg(dm2reg), .alu_ctrl(alu_ctrl), 
         .instr(instr[25:0]), .rd_dm(rd_dm), .zero(zero), .pc_current(pc_current), .alu_out(alu_out), .wd_dm(wd_dm));
@@ -16,7 +16,7 @@ endmodule
 
 module datapath
 (input         clk, rst, pc_src, jump, link, jump_reg, reg_dst, we_reg, alu_src, we_hi, we_lo, hi2reg, lo2reg, dm2reg,
- input  [2:0]  alu_ctrl,
+ input  [3:0]  alu_ctrl,
  input  [25:0] instr, 
  input  [31:0] rd_dm,
  output        zero,
@@ -41,7 +41,7 @@ module datapath
     regfile #(32) rf         (.clk(clk), .we(we_reg), .wa(jal_rf), .ra1(instr[25:21]), .ra2(instr[20:16]), .wd(wd_rf_res), .rd1(alu_pa), .rd2(wd_dm));
     // ALU Logic
     mux2    #(32) alu_pb_mux (.sel(alu_src), .a(wd_dm), .b(sext_imm), .y(alu_pb));
-    alu     #(32) alu        (.op(alu_ctrl), .a(alu_pa), .b(alu_pb), .zero(zero), .y(alu_out));
+    alu     #(32) alu        (.op(alu_ctrl), .a(alu_pa), .b(alu_pb), .shiftamount(instr[10:6]), .zero(zero), .y(alu_out));
     multi   #(32) multi      (.a(alu_pa), .b(alu_pb), .h(product[63:32]), .l(product[31:0]));
     dreg    #(32) high       (.clk(clk), .rst(rst), .en(we_hi), .d(product[63:32]), .q(hi_dat));
     dreg    #(32) low        (.clk(clk), .rst(rst), .en(we_lo), .d(product[31:0]), .q(lo_dat));
@@ -54,7 +54,7 @@ module controlunit
 (input        zero,
  input  [5:0] op, funct,
  output       pc_src, jump, link, jump_reg, reg_dst, we_reg, alu_src, we_hi, we_lo, hi2reg, lo2reg, we_dm, dm2reg,
- output [2:0] alu_ctrl);
+ output [3:0] alu_ctrl);
     wire       branch;
     wire [1:0] alu_op;
     assign pc_src = branch & zero;
