@@ -32,6 +32,7 @@ module alu #(parameter wide = 8)
             4'b0110: y = a - b;
             4'b0111: y = (a < b) ? 1 : 0;
             4'b1000: y = b >>> shiftamount;//SRA
+            4'b1001: y = a ^ b;//XOR
             default: y = 'hx;
         endcase
 endmodule
@@ -107,7 +108,28 @@ module auxdec
                 6'b000000: ctrl = 9'b0_0_0_0_0_0100;//SLL
                 6'b000010: ctrl = 9'b0_0_0_0_0_0101;//SRL
                 6'b000011: ctrl = 9'b0_0_0_0_0_1000;//SRA
+                6'b100110: ctrl = 9'b0_0_0_0_0_1001;//XOR
                 default: ctrl = 8'bx;
             endcase
         endcase
 endmodule
+/*
+module coprocessor0 (input clk, rst, enable, [4:0] ctrl, [31:0] coprocessorIn1, [31:0] coprocessorIn2 , output reg [31:0] coprocessorOut);
+    
+        //register 12
+        //register 13
+        //register 14
+        dreg #(32) EPC(.clk(clk), .rst(rst), .en(en), .d(), .q());
+    
+    
+    always @(coprocessorIn)
+        //coprocessorOut = coprocessorIn;
+    
+        case(ctrl)
+        
+        5'b:00100
+    
+
+
+endmodule
+*/
