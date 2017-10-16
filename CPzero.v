@@ -15,6 +15,14 @@ module CPzero
         rf[14] = pcp4;
     end
     
+    always @ (posedge rst) begin
+        // MIPS ISA leaves most of the values within this module as 
+        // undefined on startup. To allow functional verification in the 
+        //testbench, used register files 12-14 are initilized to zero
+        rf[12] <= 0;
+        rf[13] <= 0;
+        rf[14] <= 0;
+    end
 
     always @ (posedge alu_trap) begin   // trigger trap from ALU
         rf[13][8] = 1'b1;
@@ -36,17 +44,17 @@ module CPzero
     end
     
 
-    always @ (interrupt, rf[13][8:9]) begin
+    always @ (interrupt, rf[13][9:8]) begin
         // set INT flags
-        if (rf[12][0]) == 1) begin             
+        if (rf[12][0] == 1) begin             
             rf[13][10] <= (interrupt[0] & rf[12][10]);
             rf[13][11] <= (interrupt[1] & rf[12][11]);
             rf[13][12] <= (interrupt[2] & rf[12][12]);
             rf[13][13] <= (interrupt[3] & rf[12][13]);
             rf[13][14] <= (interrupt[4] & rf[12][14]);
             rf[13][15] <= (interrupt[5] & rf[12][15]);
-        end        
-        rf[12][1] <= rf[13][8:15] ? 1'b1 : 0;    // Set EXL flag to CU
+        end   
+        rf[12][1] = rf[13][15:8] ? 1'b1 : 0;    // Set EXL flag to CU
     end
 
 
@@ -60,7 +68,8 @@ module CPzero
         if((rf[12][13]) == 0) rf[13][13] <= 1'b0;
         if((rf[12][14]) == 0) rf[13][14] <= 1'b0;
         if((rf[12][15]) == 0) rf[13][15] <= 1'b0;
- 
+        rf[12][1] = rf[13][15:8] ? 1'b1 : 0;    // Set EXL flag to CU
+
         // Write/Read to reg
         case(addr)  
             5'b01100:                          //reg 12
