@@ -3,6 +3,19 @@ module mux2 #(parameter wide = 8)
     assign y = sel ? b : a;
 endmodule
 
+module mux4 #(parameter wide = 8)
+(input [1:0] sel, [wide-1:0] a, b, c, d, output reg [wide-1:0] y);
+    always @ (sel, a, b, c, d)
+    begin
+        case(sel)
+            2'b00: y = a;
+            2'b01: y = b;
+            2'b10: y = c;
+            2'b11: y = d;
+        endcase
+    end
+endmodule
+
 module adder #(parameter wide = 8)
 (input [wide-1:0] a, b, output [wide-1:0] y);
     assign y = a + b;
@@ -19,20 +32,22 @@ module signext
 endmodule
 
 module alu #(parameter wide = 8)
-(input [3:0] op, [wide-1:0] a, b, [4:0] shiftamount, output zero, reg [wide-1:0] y);
+(input [3:0] op, [wide-1:0] a, b, [4:0] shiftamount, output zero, reg trap, reg [wide-1:0] y);
     assign zero = (y == 'h0);
     always @ (op, a, b)
         case (op)
-            4'b0000: y = a & b;
-            4'b0001: y = a | b;
-            4'b0010: y = a + b;
-            4'b0011: y = ~(a | b);//NOR
-            4'b0100: y = b << shiftamount;//SLL
-            4'b0101: y = b >> shiftamount;//SRL
-            4'b0110: y = a - b;
-            4'b0111: y = (a < b) ? 1 : 0;
-            4'b1000: y = b >>> shiftamount;//SRA
-            4'b1001: y = a ^ b;//XOR
+            4'b0000: begin y = a & b; trap = 0; end
+            4'b0001: begin y = a | b; trap = 0; end
+            4'b0010: begin y = a + b; trap = 0; end
+            4'b0011: begin y = ~(a | b); trap = 0; end//NOR
+            4'b0100: begin y = b << shiftamount; trap = 0; end//SLL
+            4'b0101: begin y = b >> shiftamount; trap = 0; end//SRL
+            4'b0110: begin y = a - b; trap = 0; end
+            4'b0111: begin y = (a < b) ? 1 : 0; trap = 0; end
+            4'b1000: begin y = b >>> shiftamount; trap = 0; end//SRA
+            4'b1001: begin y = a ^ b; trap = 0; end//XOR
+            4'b1010: if(a != b) trap = 1;
+            4'b1011: if(a == b) trap = 1;
             default: y = 'hx;
         endcase
 endmodule
@@ -69,19 +84,22 @@ module dmem #(parameter wide = 8)
 endmodule
 
 module maindec
-(input [5:0] op, output reg branch, jump, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, reg [1:0] alu_op);
-    reg [9:0] ctrl;
-    always @ (ctrl) {branch, jump, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, alu_op} = ctrl;
+(input EXL, IV, [5:0] op, [4:0] cpop, output reg branch, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, prossSel, weCP0, reg [1:0] alu_op, jump);
+    reg [12:0] ctrl;
+    always @ (ctrl) {branch, jump, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, alu_op, prossSel, weCP0} = ctrl;
+    //set interrupt to true
+    //always @ (EXL)
     always @ (op)
         case (op)
-            6'b000000: ctrl = 10'b0_0_0_1_1_0_0_0_10; // R-Type
-            6'b100011: ctrl = 10'b0_0_0_0_1_1_0_1_00; // LW
-            6'b101011: ctrl = 10'b0_0_0_0_0_1_1_0_00; // SW
-            6'b000100: ctrl = 10'b1_0_0_0_0_0_0_0_01; // BEQ
-            6'b001000: ctrl = 10'b0_0_0_0_1_1_0_0_00; // ADDI
-            6'b000010: ctrl = 10'b0_1_0_0_0_0_0_0_00; // J
-            6'b000011: ctrl = 10'b0_1_1_0_1_0_0_0_00; // JAL
-            default: ctrl = 10'bx;
+            6'b000000: ctrl = 10'b0_00_0_1_1_0_0_0_10_0_0; // R-Type
+            6'b100011: ctrl = 10'b0_00_0_0_1_1_0_1_00_0_0; // LW
+            6'b101011: ctrl = 10'b0_00_0_0_0_1_1_0_00_0_0; // SW
+            6'b000100: ctrl = 10'b1_00_0_0_0_0_0_0_01_0_0; // BEQ
+            6'b001000: ctrl = 10'b0_00_0_0_1_1_0_0_00_0_0; // ADDI
+            6'b000010: ctrl = 10'b0_01_0_0_0_0_0_0_00_0_0; // J
+            6'b000011: ctrl = 10'b0_01_1_0_1_0_0_0_00_0_0; // JAL
+            //6'b010000: //MFC0/MTC0
+            default: ctrl = 13'bx;
         endcase
 endmodule
 
@@ -109,27 +127,10 @@ module auxdec
                 6'b000010: ctrl = 9'b0_0_0_0_0_0101;//SRL
                 6'b000011: ctrl = 9'b0_0_0_0_0_1000;//SRA
                 6'b100110: ctrl = 9'b0_0_0_0_0_1001;//XOR
+                6'b110110: ctrl = 9'b0_0_0_0_0_1010;//TNE
+                6'b110100: ctrl = 9'b0_0_0_0_0_1011;//TEQ
+                //6'b
                 default: ctrl = 8'bx;
             endcase
         endcase
 endmodule
-/*
-module coprocessor0 (input clk, rst, enable, [4:0] ctrl, [31:0] coprocessorIn1, [31:0] coprocessorIn2 , output reg [31:0] coprocessorOut);
-    
-        //register 12
-        //register 13
-        //register 14
-        dreg #(32) EPC(.clk(clk), .rst(rst), .en(en), .d(), .q());
-    
-    
-    always @(coprocessorIn)
-        //coprocessorOut = coprocessorIn;
-    
-        case(ctrl)
-        
-        5'b:00100
-    
-
-
-endmodule
-*/
