@@ -55,3 +55,59 @@ module fifo_tb();
         $stop();
     end
 endmodule
+
+
+module block_transfer_unit_tb();
+    reg [31:0] word_in;
+    wire [127:0] block_out;
+    reg word_in_ready, block_out_hold;
+    wire block_ready, pull_word;
+    
+    reg clock, reset;
+    
+    word_to_block_assembler #(.WSIZE(32)) (
+        .word_in(word_in),
+        .word_in_ready(word_in_ready),
+        .block_out_hold(block_out_hold),
+        .block_out(block_out),
+        .block_ready(block_ready),
+        .pull_word(pull_word),
+        .clock(clock),
+        .reset(reset)
+    );
+    initial begin
+        hit_reset;
+        
+        word_in = 32'hA0B0_C0D1;
+        word_in_ready = 1'b1;
+        tick;
+        
+        word_in = 32'hB0A0_D0C1;
+        tick;
+        
+        word_in = 32'hC0D0_E0F1;
+        tick;
+        
+        word_in = 32'hD0C0_F0E1;
+        tick;
+    end
+    
+    task tick;
+        begin
+            #1 clock = 1'b1;
+            #1 clock = 1'b0;
+        end
+    endtask
+    
+    task hit_reset;
+        begin
+            block_out_hold = 1'b0;
+            word_in_ready = 1'b0;
+            clock = 1'b0;
+            word_in = 32'b0;
+            
+            #1 reset = 1'b1;
+            #1 reset = 1'b0;
+        end
+    endtask
+endmodule

@@ -42,31 +42,39 @@ module word_to_block_assembler #(parameter WSIZE = 32, parameter BSIZE = WSIZE *
     input clock,
     input reset
     );
-    reg  [WSIZE - 1:0] regs[3:0]; // Intermediate registers
-    reg [1:0] count;
+    reg  [WSIZE - 1:0] reg3, reg2, reg1, reg0; // Intermediate registers
+    reg [2:0] count;
     
     initial begin
-        count = 2'd0;
+        count = 3'd0;
     end
 
-    always @(posedge clock) begin
-        if (word_in_ready && pull_word) begin
-            regs[count] = word_in;
+    always @(posedge clock, posedge reset) begin
+        if (count == 3'd4) begin
+            count = 3'd0;
+        end
+        if(reset == 1) begin
+            count <=  2'd0;
+            reg0  <= 32'b0;
+            reg1  <= 32'b0;
+            reg2  <= 32'b0;
+            reg3  <= 32'b0;           
+        end
+        else if (word_in_ready && pull_word) begin
+            //regs[count] = word_in;
+            case (count)
+                2'd3: reg3 = word_in;
+                2'd2: reg2 = word_in;
+                2'd1: reg1 = word_in;
+                2'd0: reg0 = word_in;
+            endcase
             count = count + 1;
         end
     end
     
-    always @(reset) begin
-        count   <= 2'd0;
-        regs[0] <= 1'b0;
-        regs[1] <= 1'b0;
-        regs[2] <= 1'b0;
-        regs[3] <= 1'b0;
-    end
-    
     assign pull_word = ~block_out_hold;
-    assign blk_ready = count == 2'd3;
-    assign block_out = { regs[0], regs[1], regs[2], regs[3] };
+    assign block_ready = count == 3'd4;
+    assign block_out[127:0] = { reg0, reg1, reg2, reg3 };
 endmodule
 
 module block_to_word_disassembler #(parameter WSIZE = 32, parameter BSIZE = WSIZE * 4)
@@ -93,6 +101,8 @@ module block_to_word_disassembler #(parameter WSIZE = 32, parameter BSIZE = WSIZ
             count <= 2'd0;
             word_ready = 1'd1;
         end
+        if (! word_out_hold)
+            count = count + 1;
     end
     
     always @(reset) begin
@@ -102,7 +112,7 @@ module block_to_word_disassembler #(parameter WSIZE = 32, parameter BSIZE = WSIZ
         regs[2] <= 1'b0;
         regs[3] <= 1'b0;
     end
-    
+    assign word_out = regs[count];
     assign pull_block = ~word_out_hold & count == 2'd3;
 endmodule
 
