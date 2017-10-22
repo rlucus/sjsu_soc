@@ -74,12 +74,31 @@ module aes256_datapath(
         Ex: iwf_to_wtba_wren - Input Word FIFO to Word To Block Assembler Write Enable
     */
     
+    /* KEY STATE AND MAINTENANCE LOGIC */
+    /* Internal signals */
     /* Internal storage */
     reg [255:0] key;
     reg [127:0] cur_state;
-    
-    /* Key and state maintenance logic */
-    
+    always @(posedge clock, posedge reset) 
+        if (reset)
+            key <= 256'b0;
+        else if(setkey_ctrin == 1'b1)
+            key <= key_datain;
+        else
+            key <= key;
+        
+    always @(posedge clock, posedge reset) 
+        if (reset) begin
+            cur_state <= 128'b0;
+        end
+        else begin
+            if (setnonce_ctrin == 1'b1)
+                cur_state <= nonce_datain;
+            else if (run_ctrin == 1'b0) // Hold state if not run
+                cur_state <= cur_state;
+            else
+                cur_state <= cur_state + 1;
+        end
     
     /* LEAD-IN BUFFERING LOGIC */
     
