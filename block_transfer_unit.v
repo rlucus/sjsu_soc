@@ -155,16 +155,16 @@ endmodule
  * trigger_read: Fires off a read
  ********************************************************************/
 module fifo #(parameter WSIZE = 32, parameter FIFOLEN = 1024) (
-    input wire [WSIZE - 1:0] write_data,
-    output reg [WSIZE - 1:0] read_data,
-    input trigger_write,
-    input trigger_read,
-    input reset,
+    input wire [WSIZE - 1:0] data_in,
+    output reg [WSIZE - 1:0] data_out,
+    input write_en,
+    input read_en,
     output fifo_full,
-    output fifo_empty
+    output fifo_empty,
+    input reset,
+    input clock
     );
-    wire test;
-    
+    wire trigger_read, trigger_write;
     /*
         Function ilog2
         
@@ -188,7 +188,7 @@ module fifo #(parameter WSIZE = 32, parameter FIFOLEN = 1024) (
 
     always @(posedge trigger_write) begin
         if (trigger_write && !fifo_full && !reset) begin
-            fifo_mem[write_addr[ADDRLEN - 1:0]] <= write_data;
+            fifo_mem[write_addr[ADDRLEN - 1:0]] <= data_in;
             write_addr <= write_addr + 1;
         end
         else begin
@@ -198,7 +198,7 @@ module fifo #(parameter WSIZE = 32, parameter FIFOLEN = 1024) (
     
     always @(posedge trigger_read) begin
         if (trigger_read && !fifo_empty && !reset) begin
-            read_data <= fifo_mem[read_addr[ADDRLEN - 1:0]];
+            data_out <= fifo_mem[read_addr[ADDRLEN - 1:0]];
             read_addr <= read_addr + 'd1;
         end
         else begin
@@ -213,5 +213,4 @@ module fifo #(parameter WSIZE = 32, parameter FIFOLEN = 1024) (
     
     assign fifo_empty = (write_addr - read_addr) == 0;
     assign fifo_full  = (write_addr - read_addr) == FIFOLEN;
-    assign test = read_addr[ADDRLEN - 1:0] & write_addr[ADDRLEN - 1:0];
 endmodule
