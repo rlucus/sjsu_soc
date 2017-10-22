@@ -79,41 +79,56 @@ endmodule
 
 module block_to_word_disassembler #(parameter WSIZE = 32, parameter BSIZE = WSIZE * 4)
     (
-    input [WSIZE-1:0] block_in,
+    input [BSIZE-1:0] block_in,
     input block_in_ready,
     input word_out_hold,
-    output [BSIZE-1:0] word_out,
-    output reg word_ready,
+    output [WSIZE-1:0] word_out,
+    output word_ready,
     output pull_block,
     input clock,
     input reset
     );
+    
+    parameter PULL_BLOCK = 1'b1;
+    parameter HOLD_BLOCK = 1'b0;
+    parameter WORD_READY = 1'b1;
+    parameter WORD_NOT_READY = 1'b0;
+    
     reg  [WSIZE - 1:0] regs[3:0]; // Intermediate registers
     reg [1:0] count;
+    reg pull_state;
     
     initial begin
-        count = 2'd0;
+        count <= 2'd0;
     end
 
-    always @(posedge clock) begin
-        if (block_in_ready && pull_block) begin
-            { regs[0], regs[1], regs[2], regs[3] } <= block_in;
-            count <= 2'd0;
-            word_ready = 1'd1;
+    always @(posedge clock, posedge reset) begin
+        if (reset == 1'b1) begin
+            count   <= 2'd0;
+            regs[0] <= 1'b0;
+            regs[1] <= 1'b0;
+            regs[2] <= 1'b0;
+            regs[3] <= 1'b0;
         end
-        if (! word_out_hold)
-            count = count + 1;
+        else begin
+            if (block_in_ready && pull_state == PULL_BLOCK) begin
+                { regs[0], regs[1], regs[2], regs[3] } <= block_in;
+                pull_state <= HOLD_BLOCK;
+                //word_ready <= 1'd1;
+            end
+            else if (! word_out_hold) begin
+                count <= count + 1;
+            end
+        end
     end
     
-    always @(reset) begin
-        count   <= 2'd0;
-        regs[0] <= 1'b0;
-        regs[1] <= 1'b0;
-        regs[2] <= 1'b0;
-        regs[3] <= 1'b0;
+    always @(word_out_hold, count) begin
+        pull_state = ~word_out_hold & count == 2'd0;
     end
+    
     assign word_out = regs[count];
-    assign pull_block = ~word_out_hold & count == 2'd3;
+    assign pull_block = pull_state;
+    assign word_ready = pull_state == PULL_BLOCK ? WORD_NOT_READY : WORD_READY;
 endmodule
 
 /*********************************************************************
