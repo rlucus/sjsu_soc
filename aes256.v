@@ -19,6 +19,7 @@ module aes_256 (clk, state, key, out);
     input  [127:0] state;
     input  [255:0] key;
     output [127:0] out;
+    
     reg    [127:0] s0;
     reg    [255:0] k0, k0a, k1;
     wire   [127:0] s1, s2, s3, s4, s5, s6, s7, s8,

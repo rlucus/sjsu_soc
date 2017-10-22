@@ -164,7 +164,6 @@ module fifo #(parameter WSIZE = 32, parameter FIFOLEN = 1024) (
     input reset,
     input clock
     );
-    wire trigger_read, trigger_write;
     /*
         Function ilog2
         
@@ -179,6 +178,10 @@ module fifo #(parameter WSIZE = 32, parameter FIFOLEN = 1024) (
                 ilog2 = i + 1;
             end
     endfunction
+    
+    wire trigger_read, trigger_write;
+    assign trigger_write = clock & write_en;
+    assign trigger_read = clock & read_en;
     
     parameter ADDRLEN = ilog2(FIFOLEN);
     reg [ADDRLEN:0] read_addr;
