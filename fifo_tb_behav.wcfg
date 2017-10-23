@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="fifo_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="fifo_tb" />
+            <top_module name="glbl" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0fs"></ZoomStartTime>
+      <ZoomEndTime time="41000001fs"></ZoomEndTime>
+      <Cursor1Time time="34229000fs"></Cursor1Time>
+   </zoom_setting>
+   <WVObjectSize size="12" />
+   <wvobject type="array" fp_name="/fifo_tb/in_data">
+      <obj_property name="ElementShortName">in_data[7:0]</obj_property>
+      <obj_property name="ObjectShortName">in_data[7:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/fifo_tb/trigger_read">
+      <obj_property name="ElementShortName">trigger_read</obj_property>
+      <obj_property name="ObjectShortName">trigger_read</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/fifo_tb/trigger_write">
+      <obj_property name="ElementShortName">trigger_write</obj_property>
+      <obj_property name="ObjectShortName">trigger_write</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/fifo_tb/reset">
+      <obj_property name="ElementShortName">reset</obj_property>
+      <obj_property name="ObjectShortName">reset</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/fifo_tb/out_data">
+      <obj_property name="ElementShortName">out_data[7:0]</obj_property>
+      <obj_property name="ObjectShortName">out_data[7:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/fifo_tb/is_full">
+      <obj_property name="ElementShortName">is_full</obj_property>
+      <obj_property name="ObjectShortName">is_full</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/fifo_tb/is_empty">
+      <obj_property name="ElementShortName">is_empty</obj_property>
+      <obj_property name="ObjectShortName">is_empty</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/fifo_tb/fifo_dut/read_addr">
+      <obj_property name="ElementShortName">read_addr[3:0]</obj_property>
+      <obj_property name="ObjectShortName">read_addr[3:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/fifo_tb/fifo_dut/write_addr">
+      <obj_property name="ElementShortName">write_addr[3:0]</obj_property>
+      <obj_property name="ObjectShortName">write_addr[3:0]</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/fifo_tb/fifo_dut/fifo_full">
+      <obj_property name="ElementShortName">fifo_full</obj_property>
+      <obj_property name="ObjectShortName">fifo_full</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/fifo_tb/fifo_dut/fifo_empty">
+      <obj_property name="ElementShortName">fifo_empty</obj_property>
+      <obj_property name="ObjectShortName">fifo_empty</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/fifo_tb/fifo_dut/fifo_mem">
+      <obj_property name="ElementShortName">fifo_mem[7:0][7:0]</obj_property>
+      <obj_property name="ObjectShortName">fifo_mem[7:0][7:0]</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+</wave_config>

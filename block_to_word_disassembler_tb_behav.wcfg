@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="block_to_word_disassembler_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="block_to_word_disassembler_tb" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="999992891fs"></ZoomStartTime>
+      <ZoomEndTime time="1000001422fs"></ZoomEndTime>
+      <Cursor1Time time="1000000000fs"></Cursor1Time>
+   </zoom_setting>
+   <WVObjectSize size="12" />
+   <wvobject type="array" fp_name="/block_to_word_disassembler_tb/block_in">
+      <obj_property name="ElementShortName">block_in[127:0]</obj_property>
+      <obj_property name="ObjectShortName">block_in[127:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/block_to_word_disassembler_tb/word_out">
+      <obj_property name="ElementShortName">word_out[31:0]</obj_property>
+      <obj_property name="ObjectShortName">word_out[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/block_to_word_disassembler_tb/block_in_ready">
+      <obj_property name="ElementShortName">block_in_ready</obj_property>
+      <obj_property name="ObjectShortName">block_in_ready</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/block_to_word_disassembler_tb/word_out_hold">
+      <obj_property name="ElementShortName">word_out_hold</obj_property>
+      <obj_property name="ObjectShortName">word_out_hold</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/block_to_word_disassembler_tb/word_ready">
+      <obj_property name="ElementShortName">word_ready</obj_property>
+      <obj_property name="ObjectShortName">word_ready</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/block_to_word_disassembler_tb/pull_block">
+      <obj_property name="ElementShortName">pull_block</obj_property>
+      <obj_property name="ObjectShortName">pull_block</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/block_to_word_disassembler_tb/clock">
+      <obj_property name="ElementShortName">clock</obj_property>
+      <obj_property name="ObjectShortName">clock</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/block_to_word_disassembler_tb/reset">
+      <obj_property name="ElementShortName">reset</obj_property>
+      <obj_property name="ObjectShortName">reset</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/block_to_word_disassembler_tb/btw_dis_DUT/regs">
+      <obj_property name="ElementShortName">regs[3:0][31:0]</obj_property>
+      <obj_property name="ObjectShortName">regs[3:0][31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/block_to_word_disassembler_tb/btw_dis_DUT/count">
+      <obj_property name="ElementShortName">count[1:0]</obj_property>
+      <obj_property name="ObjectShortName">count[1:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/block_to_word_disassembler_tb/btw_dis_DUT/clock">
+      <obj_property name="ElementShortName">clock</obj_property>
+      <obj_property name="ObjectShortName">clock</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/block_to_word_disassembler_tb/btw_dis_DUT/reset">
+      <obj_property name="ElementShortName">reset</obj_property>
+      <obj_property name="ObjectShortName">reset</obj_property>
+   </wvobject>
+</wave_config>
