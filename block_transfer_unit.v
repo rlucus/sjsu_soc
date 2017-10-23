@@ -95,16 +95,16 @@ module block_to_word_disassembler #(parameter WSIZE = 32, parameter BSIZE = WSIZ
     parameter WORD_NOT_READY = 1'b0;
     
     reg  [WSIZE - 1:0] regs[3:0]; // Intermediate registers
-    reg [1:0] count;
+    reg [2:0] count;
     reg pull_state;
     
     initial begin
-        count <= 2'd0;
+        count <= 3'd4; // Initial value of 4 indicates that the BTW has been fully ready and is ready for a new block
     end
 
     always @(posedge clock, posedge reset) begin
         if (reset == 1'b1) begin
-            count   <= 2'd0;
+            count   <= 3'd4;
             regs[0] <= 1'b0;
             regs[1] <= 1'b0;
             regs[2] <= 1'b0;
@@ -113,8 +113,7 @@ module block_to_word_disassembler #(parameter WSIZE = 32, parameter BSIZE = WSIZ
         else begin
             if (block_in_ready && pull_state == PULL_BLOCK) begin
                 { regs[0], regs[1], regs[2], regs[3] } <= block_in;
-                pull_state <= HOLD_BLOCK;
-                //word_ready <= 1'd1;
+                count <= 3'd0;
             end
             else if (! word_out_hold) begin
                 count <= count + 1;
@@ -123,7 +122,8 @@ module block_to_word_disassembler #(parameter WSIZE = 32, parameter BSIZE = WSIZ
     end
     
     always @(word_out_hold, count) begin
-        pull_state = ~word_out_hold & count == 2'd0;
+        pull_state = ~word_out_hold & count == 3'd4;
+        //pull_state <= HOLD_BLOCK; // TODO: figure this out
     end
     
     assign word_out = regs[count];
@@ -194,9 +194,7 @@ module fifo #(parameter WSIZE = 32, parameter FIFOLEN = 1024) (
             fifo_mem[write_addr[ADDRLEN - 1:0]] <= data_in;
             write_addr <= write_addr + 1;
         end
-        else begin
-            // Let the user pick it up via the signal wire
-        end
+        // else Let the user pick it up via the signal wire
     end
     
     always @(posedge trigger_read) begin
@@ -204,15 +202,15 @@ module fifo #(parameter WSIZE = 32, parameter FIFOLEN = 1024) (
             data_out <= fifo_mem[read_addr[ADDRLEN - 1:0]];
             read_addr <= read_addr + 'd1;
         end
-        else begin
-            // Leave existing data on the output buffer, signal to clue the user
-        end
+        // Leave existing data on the output buffer, signal to clue the user
     end
     
-    always @(reset) begin
-        read_addr  <= 'd0;
-        write_addr <= 'd0;
-    end
+    /*always @(posedge reset) begin
+        if (reset) begin
+            read_addr  <= 'd0;
+            write_addr <= 'd0;
+        end
+    end*/
     
     assign fifo_empty = (write_addr - read_addr) == 0;
     assign fifo_full  = (write_addr - read_addr) == FIFOLEN;
