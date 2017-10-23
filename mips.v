@@ -2,7 +2,7 @@
 
 module mips
 (input         clk, rst,
- input  [5:0]  INT,
+ input  [4:0]  INT,
  input  [31:0] instr, rd_dm,
  output        we_dm,
  output [31:0] pc_current, alu_out, wd_dm);    
@@ -29,7 +29,7 @@ module datapath
 (input         clk, rst, pc_src, link, jump_reg, reg_dst, we_reg, alu_src, we_hi, we_lo, hi2reg, lo2reg, dm2reg, weCP0, weCP2, 
  input [1:0] jump, prossSel,
  input  [3:0]  alu_ctrl,
- input [5:0] interrupt,
+ input [4:0] interrupt,
  input  [25:0] instr, 
  input  [31:0] rd_dm,
  output        zero, IV, EXL,
@@ -64,7 +64,7 @@ module datapath
     mux2    #(32) hi_mux     (.sel(hi2reg), .a(wd_rf), .b(hi_dat), .y(hi_res));
     mux2    #(32) lo_mux     (.sel(lo2reg), .a(hi_res), .b(lo_dat), .y(lo_res));
     mux4    #(32) pross_mux  (.sel(prossSel), .a(alu_out), .b(CPzerod), .c(32'b0), .d(32'b0), .y(CPALU));
-    CPzero        CP0        (.clk(clk), .rst(rst), .we1(weCP0), .alu_trap(trap), .addr(instr[20:16]), .interrupt(interrupt), .wd(wd_dm), .pcp4(pc_plus4), .exl(EXL), .iv(IV), .rd1(CPzerod));
+    CPzero        CP0        (.clk(clk), .rst(rst), .we1(weCP0), .alu_trap(trap), .addr(instr[20:16]), .interrupt({interrupt, 1'b0}), .wd(wd_dm), .pcp4(pc_current), .exl(EXL), .iv(IV), .rd1(CPzerod));
 endmodule
 
 
@@ -79,7 +79,7 @@ module controlunit
     wire       branch;
     wire [1:0] alu_op;
     assign pc_src = branch & zero;
-    maindec MD (.op(op), .branch(branch), .jump(jump), .link(link), .reg_dst(reg_dst), .we_reg(we_reg), .alu_src(alu_src), .we_dm(we_dm), .dm2reg(dm2reg), .alu_op(alu_op), .prossSel(prossSel), .weCP0(weCP0), .weCP2(weCP2),.cpop(cpop), .IV(IV), .EXL(EXL));
+    maindec MD (.op(op), .branch(branch), .jump(jump), .link(link), .reg_dst(reg_dst), .we_reg(we_reg), .alu_src(alu_src), .we_dm(we_dm), .dm2reg(dm2reg), .alu_op(alu_op), .prossSel(prossSel), .weCP0(weCP0), .weCP2(weCP2), .cpop(cpop), .IV(IV), .EXL(EXL));
     auxdec  AD (.alu_op(alu_op), .funct(funct), .jump_reg(jump_reg), .we_hi(we_hi), .we_lo(we_lo), .hi2reg(hi2reg), .lo2reg(lo2reg), .alu_ctrl(alu_ctrl));
 
 endmodule

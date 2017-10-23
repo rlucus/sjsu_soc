@@ -90,29 +90,35 @@ module maindec
     //set interrupt to true
     //always @ (EXL)
     always @ (op)
-        case (op)
-            6'b000000: ctrl = 15'b0_00_0_1_1_0_0_0_10_00_0_0; // R-Type
-            6'b100011: ctrl = 15'b0_00_0_0_1_1_0_1_00_00_0_0; // LW
-            6'b101011: ctrl = 15'b0_00_0_0_0_1_1_0_00_00_0_0; // SW
-            6'b000100: ctrl = 15'b1_00_0_0_0_0_0_0_01_00_0_0; // BEQ
-            6'b001000: ctrl = 15'b0_00_0_0_1_1_0_0_00_00_0_0; // ADDI
-            6'b000010: ctrl = 15'b0_01_0_0_0_0_0_0_00_00_0_0; // J
-            6'b000011: ctrl = 15'b0_01_1_0_1_0_0_0_00_00_0_0; // JAL
-            6'b010000: //MFC0/MTC0
-                begin
-                    if(cpop == 5'b00000)
+        //interrupt logic
+        if(EXL == 1)
+        begin
+            jump = IV ? 2'b11 : 2'b10;
+        end else begin
+            case (op)
+                6'b000000: ctrl = 15'b0_00_0_1_1_0_0_0_10_00_0_0; // R-Type
+                6'b100011: ctrl = 15'b0_00_0_0_1_1_0_1_00_00_0_0; // LW
+                6'b101011: ctrl = 15'b0_00_0_0_0_1_1_0_00_00_0_0; // SW
+                6'b000100: ctrl = 15'b1_00_0_0_0_0_0_0_01_00_0_0; // BEQ
+                6'b001000: ctrl = 15'b0_00_0_0_1_1_0_0_00_00_0_0; // ADDI
+                6'b000010: ctrl = 15'b0_01_0_0_0_0_0_0_00_00_0_0; // J
+                6'b000011: ctrl = 15'b0_01_1_0_1_0_0_0_00_00_0_0; // JAL
+                6'b010000: //MFC0/MTC0
                     begin
-                        //MFC0
-                        ctrl = 15'b0_00_0_0_1_0_0_0_00_01_0_0;
-                    end else if(cpop == 5'b00100)
-                    begin
-                        //MTC0
-                        ctrl = 15'b0_00_0_0_0_0_0_0_00_00_1_0;
+                        if(cpop == 5'b00000)
+                        begin
+                            //MFC0
+                            ctrl = 15'b0_00_0_0_1_0_0_0_00_01_0_0;
+                        end else if(cpop == 5'b00100)
+                        begin
+                            //MTC0
+                            ctrl = 15'b0_00_0_0_0_0_0_0_00_00_1_0;
+                        end
                     end
-                end
-            //6'b010010 //MTC2/MFC2
-            default: ctrl = 15'bx;
-        endcase
+                //6'b010010 //MTC2/MFC2
+                default: ctrl = 15'bx;
+            endcase
+        end
 endmodule
 
 module auxdec
