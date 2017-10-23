@@ -14,18 +14,18 @@ module mipscore_tb();
         bounce();
         rst = 0;
         
-        repeat (50)
+        while(pc_current != 32'h0000005C)
             begin
             bounce();
-       
-            if(pc_current==32'h0000005C)
-            begin
-                $display ("Test Done");
-                $stop;
-            end
             end
         //$stop;
+    
+        $display ("Test Done");
+        $stop;
+    
     end
+    
+    
     
     
     //move clock forward
