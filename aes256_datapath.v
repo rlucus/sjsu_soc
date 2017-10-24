@@ -30,13 +30,12 @@ module aes256_coprocessor(
     
     reg  [31:0] aes256_to_outmux_userdatain;
     wire [31:0] aes256_to_outmux_userdataout;
+    wire [31:0] data_out_wire;
     
     reg setkey;
     reg setnonce;
     reg wren;
     reg rden;
-    
-    assign interrupt = 1'b0;
     
     aes256_datapath aes256 (
         .key_datain(key_aggregate),
@@ -56,6 +55,7 @@ module aes256_coprocessor(
         .outwordfifofull_ctrout(status_aggregate[2]),
         .outblockfifoempty_ctrout(status_aggregate[1]),
         .outblockfifofull_ctrout(status_aggregate[0]),
+        .intr(interrupt),
         .clock(clock),
         .reset(status[1])
         );
@@ -82,8 +82,9 @@ module aes256_coprocessor(
                 31'd09: {setkey, setnonce, wren, rden} = 4'b1000;
                 31'd10: {setkey, setnonce, wren, rden} = 4'b1000;
                 31'd11: {setkey, setnonce, wren, rden} = 4'b1000;
-                31'd12: {setkey, setnonce, wren, rden} = 4'b0010;
-                31'd13: {setkey, setnonce, wren, rden} = 4'b0001;
+                31'd12: {setkey, setnonce, wren, rden} = 4'b1000;
+                31'd13: {setkey, setnonce, wren, rden} = 4'b0010;
+                31'd14: {setkey, setnonce, wren, rden} = 4'b0001;
                 default: {setkey, setnonce, wren, rden} = 4'b0000;
             endcase
         else
@@ -109,7 +110,7 @@ module aes256_coprocessor(
                 // default do nothing                
             endcase
     
-    always @(addr, status, nonce_in, key_in, aes256_to_outmux_userdatain, aes256_to_outmux_userdataout)
+    always @(*)
         case (addr)
             31'd00: data_out <= status;
             31'd01: data_out <= nonce_in[0];
@@ -128,6 +129,7 @@ module aes256_coprocessor(
             31'd14: data_out <= aes256_to_outmux_userdataout;
             default: data_out <= 31'b0;
         endcase
+    
 endmodule
     
 
@@ -166,6 +168,7 @@ module aes256_datapath(
     output inwordfifofull_ctrout,
     output outblockfifoempty_ctrout,
     output outblockfifofull_ctrout,
+    output intr,
     input clock,
     input reset
     );
@@ -220,6 +223,12 @@ module aes256_datapath(
                 cur_state <= cur_state + 1;
         end
     
+    /* INTERRUPTING LOGIC */
+    /* Internal signals relevant to interruption */
+    wire [31:0] iwf_to_intr_readcount;
+    wire [31:0] owf_to_intr_readcount;
+    assign intr = iwf_to_intr_readcount == owf_to_intr_readcount & iwf_to_intr_readcount > 'd0;
+    
     /* AES-256 STATE ENGINE */
     /* Internal signals relevant to the AES module */
     wire [127:0] ase_to_mainxor_out;
@@ -241,12 +250,14 @@ module aes256_datapath(
     wire wtba_blockready_logic;
     
     assign wtba_blockready_logic = ~inwordfifoempty_ctrout;
-//btwd_to_owf_wordready
+
     fifo #(.WSIZE(WSIZE), .FIFOLEN(IWFL))
         inwordfifo ( // A.K.A. iwf
             .data_in(user_datain), .data_out(iwf_to_wtba_dataout),
             .write_en(wren_ctrin), .read_en(wtba_to_iwf_pullword),
             .fifo_full(inwordfifofull_ctrout), .fifo_empty(inwordfifoempty_ctrout),
+            /* Left write_count output floating as it isn't needed here. */
+            .read_count(iwf_to_intr_readcount), .write_count(),
             .clock(clock), .reset(reset)
         );
     
@@ -263,6 +274,8 @@ module aes256_datapath(
             .data_in(wtba_to_ibf_blockout), .data_out(ibf_to_mainxor_dataout),
             .write_en(wtba_to_ibf_blockready), .read_en(run_ctrin),
             .fifo_full(inblockfifofull_ctrout), .fifo_empty(inblockfifoempty_ctrout),
+            /* Left these outputs floating as they aren't needed here. */
+            .read_count(), .write_count(),
             .clock(clock), .reset(reset)
         );
         
@@ -290,6 +303,8 @@ module aes256_datapath(
             .data_in(mainxor_to_obf_out), .data_out(obf_to_btwd_dataout),
             .write_en(obf_wren_logic), .read_en(btwd_to_obf_pullblock),
             .fifo_full(outblockfifofull_ctrout), .fifo_empty(outblockfifoempty_ctrout),
+            /* Left these outputs floating as they aren't needed here. */
+            .read_count(), .write_count(),
             .clock(clock), .reset(reset)
         );
     
@@ -306,6 +321,8 @@ module aes256_datapath(
             .data_in(btwd_to_owf_wordout), .data_out(user_dataout),
             .write_en(btwd_to_owf_wordready), .read_en(rden_ctrin),
             .fifo_full(outwordfifofull_ctrout), .fifo_empty(outwordfifoempty_ctrout),
+            /* Left the write_count output floating as it isn't needed here. */
+            .read_count(owf_to_intr_readcount), .write_count(),
             .clock(clock), .reset(reset)
         );
 endmodule
