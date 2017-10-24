@@ -159,6 +159,8 @@ module fifo #(parameter WSIZE = 32, parameter FIFOLEN = 1024) (
     output reg [WSIZE - 1:0] data_out,
     input write_en,
     input read_en,
+	output reg [WSIZE - 1:0] read_count,
+	output reg [WSIZE - 1:0] write_count,
     output fifo_full,
     output fifo_empty,
     input reset,
@@ -189,28 +191,39 @@ module fifo #(parameter WSIZE = 32, parameter FIFOLEN = 1024) (
 
     reg [WSIZE - 1:0] fifo_mem[FIFOLEN - 1:0]; // MSB used to tell if there's a word there or not
 
-    always @(posedge trigger_write) begin
-        if (trigger_write && !fifo_full && !reset) begin
+	initial begin
+		read_addr <= 'd0;
+		write_addr <= 'd0;
+		read_count <= 'd0;
+		write_count <= 'd0;
+	end
+
+    always @(posedge trigger_write, posedge reset) begin
+		if (reset) begin
+			write_addr <= 'd0;
+			write_count <= 'd0;
+		end
+        else if (trigger_write && !fifo_full && !reset) begin
             fifo_mem[write_addr[ADDRLEN - 1:0]] <= data_in;
             write_addr <= write_addr + 1;
+			write_count <= write_count + 'd1;
         end
         // else Let the user pick it up via the signal wire
     end
     
-    always @(posedge trigger_read) begin
+    always @(posedge trigger_read, posedge reset) begin
+		if (reset) begin
+			read_addr <= 'd0;
+			read_count <= 'd0;
+		end
+        else 
         if (trigger_read && !fifo_empty && !reset) begin
             data_out <= fifo_mem[read_addr[ADDRLEN - 1:0]];
             read_addr <= read_addr + 'd1;
+			read_count <= read_count + 'd1;
         end
         // Leave existing data on the output buffer, signal to clue the user
     end
-    
-    /*always @(posedge reset) begin
-        if (reset) begin
-            read_addr  <= 'd0;
-            write_addr <= 'd0;
-        end
-    end*/
     
     assign fifo_empty = (write_addr - read_addr) == 0;
     assign fifo_full  = (write_addr - read_addr) == FIFOLEN;
