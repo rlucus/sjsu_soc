@@ -82,8 +82,9 @@ module aes256_coprocessor(
                 31'd09: {setkey, setnonce, wren, rden} = 4'b1000;
                 31'd10: {setkey, setnonce, wren, rden} = 4'b1000;
                 31'd11: {setkey, setnonce, wren, rden} = 4'b1000;
-                31'd12: {setkey, setnonce, wren, rden} = 4'b0010;
-                31'd13: {setkey, setnonce, wren, rden} = 4'b0001;
+                31'd12: {setkey, setnonce, wren, rden} = 4'b1000;
+                31'd13: {setkey, setnonce, wren, rden} = 4'b0010;
+                31'd14: {setkey, setnonce, wren, rden} = 4'b0001;
                 default: {setkey, setnonce, wren, rden} = 4'b0000;
             endcase
         else
@@ -226,7 +227,7 @@ module aes256_datapath(
     /* Internal signals relevant to interruption */
     wire [31:0] iwf_to_intr_readcount;
     wire [31:0] owf_to_intr_readcount;
-    assign intr = iwf_to_intr_readcount == owf_to_intr_readcount;
+    assign intr = iwf_to_intr_readcount == owf_to_intr_readcount & iwf_to_intr_readcount > 'd0;
     
     /* AES-256 STATE ENGINE */
     /* Internal signals relevant to the AES module */
