@@ -35,29 +35,38 @@ module cp2_tb();
     reg we = 0;
     reg clk = 0;
     reg rst = 0;
-    reg [31:0] dout = 32'b0;
+    wire [31:0] dout;
 
-    cptwo u1 (.clk(clk), .addr(addr), .din(din), .we(we), .dout(dout), .int(int));
+    aes256_coprocessor u1 (.clock(clk), .addr(addr), .data_in(din), .write_en(we), .data_out(dout), .interrupt(int));
 
 
 
     initial begin
         addr = 4'b0000;
         //write 1 to everything except int and run
-        din = 8'hFF7FFFFE
+        din = 32'hFF7F_FFFE;
         we = 1;
         bounce();
+
+
+        addr = 4'b0000;
+        //write 1 to everything except int, run, and rst
+        din = 32'hFF7F_FFFC;
+        we = 1;
+        bounce();
+
+
         
         addr = 4'b0000;
                
         
         //test that it was not written to
         //empty, full, empty, full, empty, full, empty, full, zero[22:2], reset, run
-        if(dout != {1'b1, 1'b0, 1'b1, 1'b0, 1'b1, 1'b0, 1'b1, 1'b0, 1'b0, 21'b0, 1'b0, 1'b0})
-            begin
-                $display "Flag error";
-                $stop;
-            end
+        //if(dout != {1'b1, 1'b0, 1'b1, 1'b0, 1'b1, 1'b0, 1'b1, 1'b0, 1'b0, 21'b0, 1'b0, 1'b0})
+        //    begin
+        //        $display "Flag error";
+        //        $stop;
+        //    end
         
         //test to see if we works
         
@@ -139,6 +148,36 @@ module cp2_tb();
         //load data
         //loadData1
         addr=4'b1101;
+        //din = DATA[31:0];
+        din = 1;
+        we = 1;
+        bounce();
+        //loadData2
+        addr=4'b1101;
+        //din = DATA[63:32];
+        din = 2;
+        we = 1;
+        bounce();
+        //loadData3
+        addr=4'b1101;
+        //din = DATA[95:64];
+        din = 3;
+        we = 1;
+        bounce();
+        //loadData4
+        addr=4'b1101;
+        //din = DATA[127:96];
+        din = 4;
+        we = 1;
+        bounce();
+        //end of load data
+        
+        
+        //START TEST
+        /*
+                //load data
+        //loadData1
+        addr=4'b1101;
         din = DATA[31:0];
         we = 1;
         bounce();
@@ -158,6 +197,9 @@ module cp2_tb();
         we = 1;
         bounce();
         //end of load data
+        */
+        //END TEST
+        
         
         //status enable run
         addr = 4'b0000;
@@ -219,6 +261,19 @@ module cp2_tb();
         bounce();
         //end of load data
         
+        
+       
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         //status enable run
         addr = 4'b0000;
         din = 32'h00000001;
@@ -266,10 +321,11 @@ module cp2_tb();
     //move clock forward
     task bounce;
         begin
+            #5;
             clk = 1;
             #5;
             clk = 0;
-            #5;
+            
         end
     endtask
 

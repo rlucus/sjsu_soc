@@ -29,6 +29,7 @@ module aes256_coprocessor(
     wire [127:0] nonce_aggregate;
     
     reg  [31:0] aes256_to_outmux_userdatain;
+    //wire  [31:0] aes256_to_outmux_userdatain;
     wire [31:0] aes256_to_outmux_userdataout;
     wire [31:0] data_out_wire;
     
@@ -89,8 +90,8 @@ module aes256_coprocessor(
             endcase
         else
             {setkey, setnonce, wren, rden} = 4'b0000;
-    
-    always @(posedge clock)
+    //weird clock stuff, making part of this circuit combinational for case 13. added data_in to sensitivity list
+    always @(posedge clock, posedge data_in)
         if (write_en == 1'b1)
             case (addr)
                 31'd00: status[1:0] <= data_in[1:0];
@@ -106,7 +107,7 @@ module aes256_coprocessor(
                 31'd10: key_in[5] <= data_in;
                 31'd11: key_in[6] <= data_in;
                 31'd12: key_in[7] <= data_in;
-                31'd13: aes256_to_outmux_userdatain <= data_in;
+                31'd13: aes256_to_outmux_userdatain = data_in;
                 // default do nothing                
             endcase
     
