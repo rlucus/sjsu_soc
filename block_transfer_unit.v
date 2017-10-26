@@ -102,7 +102,9 @@ module block_to_word_disassembler #(parameter WSIZE = 32, parameter BSIZE = WSIZ
         count <= 3'd4; // Initial value of 4 indicates that the BTW has been fully ready and is ready for a new block
     end
 
-    always @(posedge clock, posedge reset, posedge block_in) begin
+    //always @(posedge clock, posedge reset, posedge block_in) begin
+    
+    always @(posedge clock, posedge reset) begin
         if (reset == 1'b1) begin
             count   <= 3'd4;
             regs[0] <= 1'b0;
@@ -110,15 +112,16 @@ module block_to_word_disassembler #(parameter WSIZE = 32, parameter BSIZE = WSIZ
             regs[2] <= 1'b0;
             regs[3] <= 1'b0;
         end
-        else begin
-            if (block_in_ready && pull_state == PULL_BLOCK) begin
+    end
+    
+    always @(posedge clock, posedge block_in) begin
+           if (block_in_ready && pull_state == PULL_BLOCK) begin
                 { regs[0], regs[1], regs[2], regs[3] } <= block_in;
                 count <= 3'd0;
             end
             else if (! word_out_hold) begin
                 count <= count + 1;
             end
-        end
     end
     
     always @(word_out_hold, count) begin
@@ -231,7 +234,7 @@ module fifo #(parameter WSIZE = 32, parameter FIFOLEN = 1024) (
     end
     
     //always @(posedge trigger_read, posedge reset) begin
-    always @(posedge trigger_read, posedge reset, posedge clock) begin
+    always @(posedge reset, posedge clock) begin
 		//if (reset) begin
 		//	read_addr = 'd0;
 		//	read_count = 'd0;

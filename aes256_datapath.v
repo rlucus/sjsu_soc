@@ -297,6 +297,7 @@ module aes256_datapath(
     wire btwd_blockinready_logic;
     
     assign obf_wren_logic = run_ctrin & ~inblockfifoempty_ctrout;
+    //assign obf_wren_logic = run_ctrin/* & ~inblockfifoempty_ctrout*/;
     assign btwd_blockinready_logic = ~outblockfifoempty_ctrout;
     
     fifo #(.WSIZE(BSIZE), .FIFOLEN(OBFL))
