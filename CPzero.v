@@ -38,7 +38,7 @@ module CPzero
 
     always @ (interrupt, rf[13][8:9]) begin
         // set INT flags
-        if (rf[12][0]) == 1) begin             
+        if (rf[12][0] == 1) begin             
             rf[13][10] <= (interrupt[0] & rf[12][10]);
             rf[13][11] <= (interrupt[1] & rf[12][11]);
             rf[13][12] <= (interrupt[2] & rf[12][12]);
