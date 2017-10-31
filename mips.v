@@ -63,9 +63,9 @@ module datapath
     mux2    #(32) wd_rf_mux  (.sel(dm2reg), .a(CPALU), .b(rd_dm), .y(wd_rf));
     mux2    #(32) hi_mux     (.sel(hi2reg), .a(wd_rf), .b(hi_dat), .y(hi_res));
     mux2    #(32) lo_mux     (.sel(lo2reg), .a(hi_res), .b(lo_dat), .y(lo_res));
-    mux4    #(32) pross_mux  (.sel(prossSel), .a(alu_out), .b(CPzerod), .c(CPtwod), .d(32'b0), .y(CPALU));
+    mux4    #(32) pross_mux  (.sel(prossSel), .a(alu_out), .b(CPzerod), .c(32'b0), .d(32'b0), .y(CPALU));
     CPzero        CP0        (.clk(clk), .rst(rst), .we1(weCP0), .alu_trap(trap), .addr(instr[20:16]), .interrupt({interrupt, CP2rdy}), .wd(wd_dm), .pcp4(pc_current), .exl(EXL), .iv(IV), .rd1(CPzerod));
-    aes256_coprocessor CP2   (.data_in(wd_dm), .addr(instr[20:16]), .write_en(weCP2), .data_out(CPtwod), .clock(clk), .interrupt(CP2rdy));
+    //aes256_coprocessor CP2   (.data_in(wd_dm), .addr(instr[20:16]), .write_en(weCP2), .data_out(CPtwod), .clock(clk), .interrupt(CP2rdy));
 
 
 

@@ -87,14 +87,17 @@ module maindec
 (input EXL, IV, [5:0] op, [4:0] cpop, output reg branch, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, weCP0, weCP2, reg [1:0] prossSel, alu_op, jump);
     reg [14:0] ctrl;
     always @ (ctrl) {branch, jump, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, alu_op, prossSel, weCP0, weCP2} = ctrl;
-    //set interrupt to true
-    //always @ (EXL)
+    
     always @ (op)
         //interrupt logic
         if(EXL == 1)
         begin
-            jump = IV ? 2'b11 : 2'b10;
-        end else begin
+            ctrl[12:11] = IV ? 2'b11 : 2'b10;
+        end else 
+        begin
+            //put hold accept logic here
+            //if(hold) //holdACK == hold 1 ? 0;
+            //else begin
             case (op)
                 6'b000000: ctrl = 15'b0_00_0_1_1_0_0_0_10_00_0_0; // R-Type
                 6'b100011: ctrl = 15'b0_00_0_0_1_1_0_1_00_00_0_0; // LW
@@ -103,7 +106,7 @@ module maindec
                 6'b001000: ctrl = 15'b0_00_0_0_1_1_0_0_00_00_0_0; // ADDI
                 6'b000010: ctrl = 15'b0_01_0_0_0_0_0_0_00_00_0_0; // J
                 6'b000011: ctrl = 15'b0_01_1_0_1_0_0_0_00_00_0_0; // JAL
-                6'b010000: //MFC0/MTC0
+                /*6'b010000: //MFC0/MTC0
                     begin
                         if(cpop == 5'b00000)
                         begin
@@ -114,11 +117,14 @@ module maindec
                             //MTC0
                             ctrl = 15'b0_00_0_0_0_0_0_0_00_00_1_0;
                         end
-                    end
+                    end*/
                 //6'b010010 //MTC2/MFC2
                 default: ctrl = 15'bx;
             endcase
+        //end of hold logic
+        //end
         end
+        
 endmodule
 
 module auxdec
@@ -128,9 +134,9 @@ module auxdec
     always @ (ctrl) {jump_reg, we_hi, we_lo, hi2reg, lo2reg, alu_ctrl} = ctrl;
     always @ (alu_op, funct)
         case (alu_op)
-            2'b00: ctrl = 8'b0_0_0_0_0_010; // add
-            2'b01: ctrl = 8'b0_0_0_0_0_110; // sub
-            2'b11: ctrl = 8'b0_0_0_0_0_000; //SLTI
+            2'b00: ctrl = 9'b0_0_0_0_0_0010; // add
+            2'b01: ctrl = 9'b0_0_0_0_0_0110; // sub
+            2'b11: ctrl = 9'b0_0_0_0_0_0000; //SLTI
             default: case (funct)
                 6'b100000: ctrl = 9'b0_0_0_0_0_0010; // ADD
                 6'b100010: ctrl = 9'b0_0_0_0_0_0110; // SUB
