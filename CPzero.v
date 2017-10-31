@@ -14,19 +14,21 @@ module CPzero
     always @ (posedge exl) begin        // capture pc+4 Return addr when INT flag is set
         rf[14] = pcp4;
     end
-    
-    always @ (posedge rst) begin
+ 
+ //MUST BE UNCOMMENTED TO RUN TESTBENCH.   
+/*    always @ (posedge rst) begin
         // MIPS ISA leaves most of the values within this module as 
         // undefined on startup. To allow functional verification in the 
         //testbench, used register files 12-14 are initilized to zero
-        rf[12] <= 0;
-        rf[13] <= 0;
-        rf[14] <= 0;
-    end
+        rf[12] = 0;
+        rf[13] = 0;
+        rf[14] = 0;
+    end*/
 
-    always @ (posedge alu_trap) begin   // trigger trap from ALU
-        rf[13][8] = 1'b1;
-    end
+//    always @ (posedge alu_trap) begin   // trigger trap from ALU
+        //rf[13][8] = alu_trap;
+        //rf[13][8] = alu_trap ? 1'b1:1'b0;
+//    end
 
 
     // negedge clock
@@ -44,7 +46,7 @@ module CPzero
     end
     
 
-    always @ (interrupt) begin
+/*    always @ (interrupt) begin
         // set INT flags
         if (rf[12][10])
             if(interrupt[0]) rf[13][10] <= 1'b1;
@@ -58,7 +60,7 @@ module CPzero
             if(interrupt[4]) rf[13][14] <= 1'b1;
         if (rf[12][15])
             if(interrupt[5]) rf[13][15] <= 1'b1;
-    end
+    end*/
 
 
 /*
@@ -90,49 +92,73 @@ always @ (rf[13][15:8], rf[12][0]) begin
 end
 */
 
-    always @ (posedge clk) begin   
-        // clear int flags
-        if((rf[12][ 8]) == 0) rf[13][ 8] <= 1'b0;
-        if((rf[12][ 9]) == 0) rf[13][ 9] <= 1'b0;
-        if((rf[12][10]) == 0) rf[13][10] <= 1'b0;
-        if((rf[12][11]) == 0) rf[13][11] <= 1'b0;
-        if((rf[12][12]) == 0) rf[13][12] <= 1'b0;
-        if((rf[12][13]) == 0) rf[13][13] <= 1'b0;
-        if((rf[12][14]) == 0) rf[13][14] <= 1'b0;
-        if((rf[12][15]) == 0) rf[13][15] <= 1'b0;
-        rf[12][1] = rf[13][15:8] ? 1'b1 : 0;    // Set EXL flag to CU
-
-        // Write/Read to reg
-        case(addr)  
-            5'b01100:                          //reg 12
-                if(we1) begin
-                    rf[addr][31:16]<= 0;
-                    rf[addr][15:8] <= wd[15:8];
-                    rf[addr][7:2]  <= 0;
-                    rf[addr][1]    <= rf[addr][1];
-                    rf[addr][0]    <= wd[0];
-                end
-            5'b01101:                          //reg 13
-                if(we1) begin
-                    rf[addr][31:24] <= 0;
-                    rf[addr][23]    <= wd[23];
-                    rf[addr][22:16] <= 0;
-                    rf[addr][7]     <= 0;
-                    rf[addr][1:0]   <= 0;
-                   
-                    //traps
-                    if(rf[12][9] == 1) begin //trap1
-                        rf[addr][9] <= wd[9];
+    always @ (posedge clk or posedge interrupt) begin   
+        
+            if (interrupt) begin
+                // set INT flags
+                if (rf[12][10])
+                    if(interrupt[0]) rf[13][10] <= 1'b1;
+                if (rf[12][11])
+                    if(interrupt[1]) rf[13][11] <= 1'b1;
+                if (rf[12][12])
+                    if(interrupt[2]) rf[13][12] <= 1'b1;
+                if (rf[12][13])
+                    if(interrupt[3]) rf[13][13] <= 1'b1;
+                if (rf[12][14])
+                    if(interrupt[4]) rf[13][14] <= 1'b1;
+                if (rf[12][15])
+                    if(interrupt[5]) rf[13][15] <= 1'b1;
+            end else begin
+        
+        
+        
+            if(alu_trap == 1) rf[13][8] <= 1'b1;
+            
+                                   
+            // clear int flags
+            if((rf[12][ 8]) == 0) rf[13][ 8] <= 1'b0;
+            if((rf[12][ 9]) == 0) rf[13][ 9] <= 1'b0;
+            if((rf[12][10]) == 0) rf[13][10] <= 1'b0;
+            if((rf[12][11]) == 0) rf[13][11] <= 1'b0;
+            if((rf[12][12]) == 0) rf[13][12] <= 1'b0;
+            if((rf[12][13]) == 0) rf[13][13] <= 1'b0;
+            if((rf[12][14]) == 0) rf[13][14] <= 1'b0;
+            if((rf[12][15]) == 0) rf[13][15] <= 1'b0;
+            //rf[12][1] = rf[13][15:8] ? 1'b1 : 0;    // Set EXL flag to CU
+    
+            // Write/Read to reg
+            case(addr)  
+                5'b01100:                          //reg 12
+                    if(we1) begin
+                        rf[addr][31:16]<= 0;
+                        rf[addr][15:8] <= wd[15:8];
+                        rf[addr][7:2]  <= 0;
+                        rf[addr][1]    <= rf[addr][1];
+                        rf[addr][0]    <= wd[0];
                     end
-                    if(rf[12][8] == 1) begin //trap0
-                        rf[addr][8] <= wd[8];
-                    end       
-                end
-            5'b01110:                          //reg 14
-                if(we1) begin
-                    rf[addr] <= wd;
-                end
-        endcase // END case(addr)
+                5'b01101:                          //reg 13
+                    if(we1) begin
+                        rf[addr][31:24] <= 0;
+                        rf[addr][23]    <= wd[23];
+                        rf[addr][22:16] <= 0;
+                        rf[addr][7]     <= 0;
+                        rf[addr][1:0]   <= 0;
+                       
+                        //traps
+                        if(rf[12][9] == 1) begin //trap1
+                            rf[addr][9] <= wd[9];
+                        end
+                        if(rf[12][8] == 1) begin //trap0
+                            rf[addr][8] <= wd[8];
+                        end       
+                    end
+                5'b01110:                          //reg 14
+                    if(we1) begin
+                        rf[addr] <= wd;
+                    end
+            endcase // END case(addr)
+    //end of interrupt logic
     end
-
+    end
+    
 endmodule

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="block_transfer_unit_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="block_transfer_unit_tb" />
+            <top_module name="glbl" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0fs"></ZoomStartTime>
+      <ZoomEndTime time="16000001fs"></ZoomEndTime>
+      <Cursor1Time time="7704000fs"></Cursor1Time>
+   </zoom_setting>
+   <WVObjectSize size="13" />
+   <wvobject type="array" fp_name="/block_transfer_unit_tb/word_in">
+      <obj_property name="ElementShortName">word_in[31:0]</obj_property>
+      <obj_property name="ObjectShortName">word_in[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/block_transfer_unit_tb/block_out">
+      <obj_property name="ElementShortName">block_out[127:0]</obj_property>
+      <obj_property name="ObjectShortName">block_out[127:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/block_transfer_unit_tb/word_in_ready">
+      <obj_property name="ElementShortName">word_in_ready</obj_property>
+      <obj_property name="ObjectShortName">word_in_ready</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/block_transfer_unit_tb/block_out_hold">
+      <obj_property name="ElementShortName">block_out_hold</obj_property>
+      <obj_property name="ObjectShortName">block_out_hold</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/block_transfer_unit_tb/block_ready">
+      <obj_property name="ElementShortName">block_ready</obj_property>
+      <obj_property name="ObjectShortName">block_ready</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/block_transfer_unit_tb/pull_word">
+      <obj_property name="ElementShortName">pull_word</obj_property>
+      <obj_property name="ObjectShortName">pull_word</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/block_transfer_unit_tb/clock">
+      <obj_property name="ElementShortName">clock</obj_property>
+      <obj_property name="ObjectShortName">clock</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/block_transfer_unit_tb/reset">
+      <obj_property name="ElementShortName">reset</obj_property>
+      <obj_property name="ObjectShortName">reset</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/block_transfer_unit_tb/wtb_assembler_dut/reg3">
+      <obj_property name="ElementShortName">reg3[31:0]</obj_property>
+      <obj_property name="ObjectShortName">reg3[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/block_transfer_unit_tb/wtb_assembler_dut/reg2">
+      <obj_property name="ElementShortName">reg2[31:0]</obj_property>
+      <obj_property name="ObjectShortName">reg2[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/block_transfer_unit_tb/wtb_assembler_dut/reg1">
+      <obj_property name="ElementShortName">reg1[31:0]</obj_property>
+      <obj_property name="ObjectShortName">reg1[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/block_transfer_unit_tb/wtb_assembler_dut/reg0">
+      <obj_property name="ElementShortName">reg0[31:0]</obj_property>
+      <obj_property name="ObjectShortName">reg0[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/block_transfer_unit_tb/wtb_assembler_dut/count">
+      <obj_property name="ElementShortName">count[2:0]</obj_property>
+      <obj_property name="ObjectShortName">count[2:0]</obj_property>
+   </wvobject>
+</wave_config>
