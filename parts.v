@@ -32,8 +32,9 @@ module signext
 endmodule
 
 module alu #(parameter wide = 8)
-(input [3:0] op, [wide-1:0] a, b, [4:0] shiftamount, output zero, reg trap, reg [wide-1:0] y);
+(input [3:0] op, [wide-1:0] a, b, [4:0] shiftamount, output zero, NE, reg trap, reg [wide-1:0] y);
     assign zero = (y == 'h0);
+    assign NE = (a != b);
     always @ (op, a, b)
         case (op)
             4'b0000: begin y = a & b; trap = 0; end
@@ -84,60 +85,75 @@ module dmem #(parameter wide = 8)
 endmodule
 
 module maindec
-(input EXL, IV, [5:0] op, [4:0] cpop, output reg branch, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, weCP0, weCP2, reg [1:0] prossSel, alu_op, jump);
-    reg [14:0] ctrl;
-    always @ (ctrl) {branch, jump, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, alu_op, prossSel, weCP0, weCP2} = ctrl;
+(input EXL, hold, IV, [5:0] op, [4:0] cpop, output reg holdACK, branch, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, weCP0, weCP2, BNE, reg [1:0] prossSel, jump, reg [2:0] alu_op);
+    reg [16:0] ctrl;
+    always @ (ctrl) {branch, jump, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, alu_op, prossSel, weCP0, weCP2, BNE} = ctrl;
     
-    always @ (op)
+    always @ (op, EXL)
         //interrupt logic
         if(EXL == 1)
         begin
-            ctrl[12:11] = IV ? 2'b11 : 2'b10;
+            ctrl[15:14] = IV ? 2'b11 : 2'b10;
         end else 
         begin
             //put hold accept logic here
-            //if(hold) //holdACK == hold 1 ? 0;
-            //else begin
+            if(hold) holdACK = hold ? 1'b1 : 1'b0;
+            else begin
             case (op)
-                6'b000000: ctrl = 15'b0_00_0_1_1_0_0_0_10_00_0_0; // R-Type
-                6'b100011: ctrl = 15'b0_00_0_0_1_1_0_1_00_00_0_0; // LW
-                6'b101011: ctrl = 15'b0_00_0_0_0_1_1_0_00_00_0_0; // SW
-                6'b000100: ctrl = 15'b1_00_0_0_0_0_0_0_01_00_0_0; // BEQ
-                6'b001000: ctrl = 15'b0_00_0_0_1_1_0_0_00_00_0_0; // ADDI
-                6'b000010: ctrl = 15'b0_01_0_0_0_0_0_0_00_00_0_0; // J
-                6'b000011: ctrl = 15'b0_01_1_0_1_0_0_0_00_00_0_0; // JAL
-                /*6'b010000: //MFC0/MTC0
+                6'b000000: ctrl = 17'b0_00_0_1_1_0_0_0_010_00_0_0_0; // R-Type
+                6'b100011: ctrl = 17'b0_00_0_0_1_1_0_1_000_00_0_0_0; // LW
+                6'b101011: ctrl = 17'b0_00_0_0_0_1_1_0_000_00_0_0_0; // SW
+                6'b000100: ctrl = 17'b1_00_0_0_0_0_0_0_001_00_0_0_0; // BEQ
+                6'b001000: ctrl = 17'b0_00_0_0_1_1_0_0_000_00_0_0_0; // ADDI
+                6'b000010: ctrl = 17'b0_01_0_0_0_0_0_0_000_00_0_0_0; // J
+                6'b000011: ctrl = 17'b0_01_1_0_1_0_0_0_000_00_0_0_0; // JAL
+                6'b001010: ctrl = 17'b0_00_0_0_1_1_0_0_011_00_0_0_0; // SLTI, untested
+                6'b000101: ctrl = 17'b0_00_0_0_0_0_0_0_001_00_0_0_1;//BNE
+                6'b010000: //MFC0/MTC0
                     begin
                         if(cpop == 5'b00000)
                         begin
                             //MFC0
-                            ctrl = 15'b0_00_0_0_1_0_0_0_00_01_0_0;
+                            ctrl = 17'b0_00_0_0_1_0_0_0_000_01_0_0_0;
                         end else if(cpop == 5'b00100)
                         begin
                             //MTC0
-                            ctrl = 15'b0_00_0_0_0_0_0_0_00_00_1_0;
+                            ctrl = 17'b0_00_0_0_0_0_0_0_000_00_1_0_0;
                         end
-                    end*/
-                //6'b010010 //MTC2/MFC2
-                default: ctrl = 15'bx;
+                    end
+                6'b010010: //MTC2/MFC2
+                    begin
+                        if(cpop == 5'b00000)
+                        begin
+                            //MFC2
+                            ctrl = 17'b0_00_0_0_1_0_0_0_000_10_0_0_0;
+                        end else if(cpop == 5'b00100)
+                        begin
+                            //MTC2
+                            ctrl = 17'b0_00_0_0_0_0_0_0_000_00_0_1_0;
+                        end
+                    //end of MXC2
+                    end
+                default: ctrl = 17'bx;
             endcase
         //end of hold logic
-        //end
+        end
+        //end of logic
         end
         
 endmodule
 
 module auxdec
-(input [1:0] alu_op, [5:0] funct, output reg jump_reg, we_hi, we_lo, hi2reg, lo2reg, reg [3:0] alu_ctrl);
+(input [2:0] alu_op, [5:0] funct, output reg jump_reg, we_hi, we_lo, hi2reg, lo2reg, reg [3:0] alu_ctrl);
     reg [8:0] ctrl;
     //adjusting alucontrol
     always @ (ctrl) {jump_reg, we_hi, we_lo, hi2reg, lo2reg, alu_ctrl} = ctrl;
     always @ (alu_op, funct)
         case (alu_op)
-            2'b00: ctrl = 9'b0_0_0_0_0_0010; // add
-            2'b01: ctrl = 9'b0_0_0_0_0_0110; // sub
-            2'b11: ctrl = 9'b0_0_0_0_0_0000; //SLTI
-            default: case (funct)
+            3'b000: ctrl = 9'b0_0_0_0_0_0010; // add
+            3'b001: ctrl = 9'b0_0_0_0_0_0110; // sub
+            3'b011: ctrl = 9'b0_0_0_0_0_0111; //SLTI
+            3'b010: case (funct)
                 6'b100000: ctrl = 9'b0_0_0_0_0_0010; // ADD
                 6'b100010: ctrl = 9'b0_0_0_0_0_0110; // SUB
                 6'b100100: ctrl = 9'b0_0_0_0_0_0000; // AND

@@ -91,12 +91,58 @@ always @ (rf[13][15:8], rf[12][0]) begin
         end
 end
 */
-
-    always @ (posedge clk or posedge interrupt) begin   
+    wire [5:0] TEMP;
+    assign TEMP[0] = rf[12][10] ?  interrupt[0] : 0;
+    assign TEMP[1] = rf[12][11] ?  interrupt[1] : 0;
+    assign TEMP[2] = rf[12][12] ?  interrupt[2] : 0;
+    assign TEMP[3] = rf[12][13] ?  interrupt[3] : 0;
+    assign TEMP[4] = rf[12][14] ?  interrupt[4] : 0;
+    assign TEMP[5] = rf[12][15] ?  interrupt[5] : 0;
+    
+    always @ (TEMP, clk)
+    begin
+        if(rf[12][0] == 1)begin
+            if(TEMP[0] == 1) rf[13][10] = TEMP[0];
+            if(TEMP[1] == 1) rf[13][11] = TEMP[1];
+            if(TEMP[2] == 1) rf[13][12] = TEMP[2];
+            if(TEMP[3] == 1) rf[13][13] = TEMP[3];
+            if(TEMP[4] == 1) rf[13][14] = TEMP[4];
+            if(TEMP[5] == 1) rf[13][15] = TEMP[5];
+        end 
+         
+        if(rf[12][10] == 0) rf[13][10] = 0;
+        if(rf[12][11] == 0) rf[13][11] = 0;
+        if(rf[12][12] == 0) rf[13][12] = 0;
+        if(rf[12][13] == 0) rf[13][13] = 0;
+        if(rf[12][14] == 0) rf[13][14] = 0;
+        if(rf[12][15] == 0) rf[13][15] = 0;
         
-            if (interrupt) begin
+    end
+
+/*
+    always @(interrupt) begin
+    
+                        if (rf[12][10])
+        if(interrupt[0]) rf[13][10] <= 1'b1;
+    if (rf[12][11])
+        if(interrupt[1]) rf[13][11] <= 1'b1;
+    if (rf[12][12])
+        if(interrupt[2]) rf[13][12] <= 1'b1;
+    if (rf[12][13])
+        if(interrupt[3]) rf[13][13] <= 1'b1;
+    if (rf[12][14])
+        if(interrupt[4]) rf[13][14] <= 1'b1;
+    if (rf[12][15])
+        if(interrupt[5]) rf[13][15] <= 1'b1;
+    
+    end*/
+
+    always @ (posedge clk) begin
+    //always @ (posedge clk) begin   
+        
+            //if (interrupt) begin
                 // set INT flags
-                if (rf[12][10])
+                /*if (rf[12][10])
                     if(interrupt[0]) rf[13][10] <= 1'b1;
                 if (rf[12][11])
                     if(interrupt[1]) rf[13][11] <= 1'b1;
@@ -107,8 +153,8 @@ end
                 if (rf[12][14])
                     if(interrupt[4]) rf[13][14] <= 1'b1;
                 if (rf[12][15])
-                    if(interrupt[5]) rf[13][15] <= 1'b1;
-            end else begin
+                    if(interrupt[5]) rf[13][15] <= 1'b1;*/
+            //end else begin
         
         
         
@@ -118,12 +164,12 @@ end
             // clear int flags
             if((rf[12][ 8]) == 0) rf[13][ 8] <= 1'b0;
             if((rf[12][ 9]) == 0) rf[13][ 9] <= 1'b0;
-            if((rf[12][10]) == 0) rf[13][10] <= 1'b0;
+            /*if((rf[12][10]) == 0) rf[13][10] <= 1'b0;
             if((rf[12][11]) == 0) rf[13][11] <= 1'b0;
             if((rf[12][12]) == 0) rf[13][12] <= 1'b0;
             if((rf[12][13]) == 0) rf[13][13] <= 1'b0;
             if((rf[12][14]) == 0) rf[13][14] <= 1'b0;
-            if((rf[12][15]) == 0) rf[13][15] <= 1'b0;
+            if((rf[12][15]) == 0) rf[13][15] <= 1'b0;*/
             //rf[12][1] = rf[13][15:8] ? 1'b1 : 0;    // Set EXL flag to CU
     
             // Write/Read to reg
@@ -158,7 +204,7 @@ end
                     end
             endcase // END case(addr)
     //end of interrupt logic
-    end
+    //end
     end
     
 endmodule

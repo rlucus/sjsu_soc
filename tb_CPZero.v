@@ -1,5 +1,3 @@
-
-
 module tb_CPZero();
 
     reg         clk, rst, we1, alu_trap;
@@ -78,9 +76,10 @@ module tb_CPZero();
         // should trigger exl
         alu_trap = 1;             //set trap
         expExl   = 1; expOut = 32'h0000_FF03;    // should flag int
-        #5;
+        tickTock;
         testOutput;                      // test 2
-
+        
+        alu_trap = 0;
         wd     = 32'h0000_FE02; we1 = 1;   // dis/clr reg
         expOut = 32'h0000_FE02; expExl = 1;
         tickTock;  
@@ -127,8 +126,11 @@ module tb_CPZero();
         tickTock;     
         testOutput;                     // test 1
 
+        //#5;//TEST TO REMOVE
+
         // hardware interrupt registers/flags exl async
         addr = 13; interrupt = 6'b1000_01;
+        //#5;//TEST TO REMOVE
         expOut = 32'h0000_8428; expExl = 1; expIv = 0; 
         #5;            
         testOutput;                     // test 2
