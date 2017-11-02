@@ -146,7 +146,7 @@ integer i;
 
         KEY[127: 96] = $urandom%4294967295; #5; $write("%h",    KEY[127: 96] );
         KEY[ 95: 64] = $urandom%4294967295; #5; $write("%h_",   KEY[ 95: 64] );
-        KEY[ 63: 31] = $urandom%4294967295; #5; $write("%h",    KEY[ 63: 31] );
+        KEY[ 63: 32] = $urandom%4294967295; #5; $write("%h",    KEY[ 63: 31] );
         KEY[ 31:  0] = $urandom%4294967295; #5; $write("%h\n",  
         KEY[ 31:  0] );
     end
@@ -172,7 +172,7 @@ integer i;
         writeWord(ADDR_KEY3, thisKey[159:128]);
         writeWord(ADDR_KEY4, thisKey[127: 96]);
         writeWord(ADDR_KEY5, thisKey[ 95: 64]);
-        writeWord(ADDR_KEY6, thisKey[ 63: 31]);
+        writeWord(ADDR_KEY6, thisKey[ 63: 32]);
         writeWord(ADDR_KEY7, thisKey[ 31:  0]);
         writeWord(ADDR_CONFIG, {28'h0000_000, 2'b0_0, keyLen, 1'b0});
         writeWord(ADDR_CTRL,   32'h0000_0001);
