@@ -98,7 +98,8 @@ module tb_aes_block();
            output wire [127 : 0] read_block,
           );
  */   
-
+ 
+reg [127:0] write_block;
     aes_block u2(
            // Clock and reset.
            .clk        (clk),
@@ -112,7 +113,7 @@ module tb_aes_block();
            .address    (addr),
            .write_block(write_block),
            .read_block (read_block),
-           .INT(INT),
+           .INT(INT)
            );
 
 integer counter = 0;
@@ -163,7 +164,7 @@ integer i;
         cs         = 1;
         write_en   = 1;
         addr       = address;
-        write_block= block;
+        write_block<= block;
         tickTock;
         cs         = 0;
         write_en   = 0;
