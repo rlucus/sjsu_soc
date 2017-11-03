@@ -85,9 +85,26 @@ module dmem #(parameter wide = 8)
 endmodule
 
 module maindec
-(input EXL, hold, IV, [5:0] op, [4:0] cpop, output reg holdACK, branch, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, weCP0, weCP2, BNE, reg [1:0] prossSel, jump, reg [2:0] alu_op);
+(input EXL, hold, IV, [5:0] op, funct, [4:0] cpop, output reg holdACK, branch, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, weCP0, weCP2, BNE, INTCTRL, reg [1:0] prossSel, jump, reg [2:0] alu_op);
     reg [16:0] ctrl;
     always @ (ctrl) {branch, jump, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, alu_op, prossSel, weCP0, weCP2, BNE} = ctrl;
+    
+    always @ (op)
+    
+        case(op)
+            6'b000100: INTCTRL <= 1'b1;//BEQ
+            6'b000010: INTCTRL <= 1'b1;//J
+            6'b000011: INTCTRL <= 1'b1;//JAL
+            6'b000101: INTCTRL <= 1'b1;//BNE
+            6'b000000:
+            begin
+                if(funct == 6'b001000)
+                begin
+                    INTCTRL <= 1'b1;
+                end
+            end
+            default: INTCTRL <= 1'b0;
+        endcase
     
     always @ (op, EXL)
         //interrupt logic
@@ -180,33 +197,26 @@ endmodule
 
 `timescale 1ns / 1ps
 
-module clk_gen(input clk100MHz, input rst, output reg clk_sec, output reg clk_5KHz);
+module clk_gen(input clk450MHz, input rst, output reg clk_sec);
 
 integer count, count1;
 
-always@(posedge clk100MHz)
+always@(posedge clk450MHz)
     begin
         if(rst)
         begin
             count = 0;
-            count1 = 0;
             clk_sec = 0;
-            clk_5KHz =0;
         end
         else
         begin
-            if(count == 50000000) /* 50e6 x 10ns = 1/2sec, toggle twice for 1sec */
+            //if(count == 50000000) /* 50e6 x 10ns = 1/2sec, toggle twice for 1sec */
+            if(count == 604) /* 50e6 x 10ns = 1/2sec, toggle twice for 1sec */
             begin
             clk_sec = ~clk_sec;
             count = 0;
             end
-            if(count1 == 10000)
-            begin
-            clk_5KHz = ~clk_5KHz;
-            count1 = 0;
-            end
             count = count + 1;
-            count1 = count1 + 1;
         end
     end
 endmodule // end clk_gen
@@ -299,7 +309,68 @@ end
 endmodule
 
 
+module timer #(parameter ticks = 500) (input clk, rst, we, [4:0] addr, [31:0] dataIn, output flag);
+    
+    reg [31:0] counter;
+    reg [31:0] target;
+    
+    assign flag = (counter >= target) ? 1'b1 : 1'b0;
+    
+    always @ (posedge clk, posedge rst)
+    begin
+                
+        if(rst == 1)
+        begin
+            counter = 0;
+            target = ticks;
+        end
+        
+        case (addr)
+            5'b10110: 
+                begin
+                    if(we == 1)
+                    begin
+                        counter = dataIn;
+                    end
+                end
+            
+            5'b10111:
+                begin
+                    if(we == 1)
+                    begin
+                        target = dataIn;
+                    end
+                end
+        
+        endcase
+                
+        counter = counter + 1;
+        
+    end
 
+endmodule
+
+
+module debounce #(parameter width = 16) (
+	output reg pb_debounced, 
+	input wire pb, 
+	input wire clk
+	);
+
+localparam shift_max = (2**width)-1;
+
+reg [width-1:0] shift;
+
+always @ (posedge clk)
+begin
+	shift[width-2:0] <= shift[width-1:1];
+	shift[width-1] <= pb;
+	if (shift == shift_max)
+		pb_debounced <= 1'b1;
+	else
+		pb_debounced <= 1'b0;
+end
+endmodule
 
 
 //MODULES FOR HARDWARE
