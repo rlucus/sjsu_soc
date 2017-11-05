@@ -14,11 +14,13 @@
  * limitations under the License.
  */
  
-module aes_256 (clk, state, key, out);
+module aes_256 (clk, state, key, out, start, finish);
     input          clk;
     input  [127:0] state;
     input  [255:0] key;
     output [127:0] out;
+    input  start;
+    output finish;
     
     reg    [127:0] s0;
     reg    [255:0] k0, k0a, k1;

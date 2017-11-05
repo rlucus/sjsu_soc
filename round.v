@@ -15,10 +15,14 @@
  */
  
 /* one AES round for every two clock cycles */
-module one_round (clk, state_in, key, state_out);
+module one_round (clk, state_in, key, state_out, tracker_in, tracker_out);
     input              clk;
     input      [127:0] state_in, key;
     output reg [127:0] state_out;
+    /* Tracking pins */
+    input      tracker_in;
+    output     tracker_out;
+    
     wire       [31:0]  s0,  s1,  s2,  s3,
                        z0,  z1,  z2,  z3,
                        p00, p01, p02, p03,
@@ -26,7 +30,14 @@ module one_round (clk, state_in, key, state_out);
                        p20, p21, p22, p23,
                        p30, p31, p32, p33,
                        k0,  k1,  k2,  k3;
- 
+    /* Tracking logic */
+    reg cycle1, cycle2;
+    always @(clk) begin
+        cycle1 <= tracker_in;
+        cycle2 <= cycle1;
+    end
+    assign tracker_out = cycle2;
+    
     assign {k0, k1, k2, k3} = key;
  
     assign {s0, s1, s2, s3} = state_in;
@@ -47,11 +58,13 @@ module one_round (clk, state_in, key, state_out);
 endmodule
  
 /* AES final round for every two clock cycles */
-module final_round (clk, state_in, key_in, state_out);
+module final_round (clk, state_in, key_in, state_out, tracker_in, tracker_out);
     input              clk;
     input      [127:0] state_in;
     input      [127:0] key_in;
     output reg [127:0] state_out;
+    input       tracker_in;
+    output      tracker_out;
     wire [31:0] s0,  s1,  s2,  s3,
                 z0,  z1,  z2,  z3,
                 k0,  k1,  k2,  k3;
@@ -59,7 +72,14 @@ module final_round (clk, state_in, key_in, state_out);
                 p10, p11, p12, p13,
                 p20, p21, p22, p23,
                 p30, p31, p32, p33;
- 
+     /* Tracking logic */
+    reg cycle1, cycle2;
+    always @(clk) begin
+        cycle1 <= tracker_in;
+        cycle2 <= cycle1;
+    end
+    assign tracker_out = cycle2;
+    
     assign {k0, k1, k2, k3} = key_in;
  
     assign {s0, s1, s2, s3} = state_in;
