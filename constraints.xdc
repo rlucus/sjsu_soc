@@ -1,9 +1,25 @@
-# Based on Digilent's Nexys 4 DDR reference XDC,
+# Based on Digilent's Nexys Video reference XDC,
 # with extra pins not used in the labs removed.
 
-# Clock signal (100 MHz)
-set_property -dict { PACKAGE_PIN E3    IOSTANDARD LVCMOS33 } [get_ports { clk }]; #IO_L12P_T1_MRCC_35 Sch=clk100mhz
-create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports {clk}];
+# Clock signal (450 MHz)
+set_property -dict { PACKAGE_PIN R4    IOSTANDARD LVCMOS33 } [get_ports { clk450MHz }]; #IO_L13P_T2_MRCC_34 Sch=sysclk
+create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports {clk450MHz}];
+
+#reset for stuff
+set_property -dict { PACKAGE_PIN B22  IOSTANDARD LVCMOS33} [get_ports { rst }]; #IO_L20N_T3_16 Sch=btnc
+
+#clk for this thing
+#set_property -dict { PACKAGE_PIN D22  IOSTANDARD LVCMOS33} [get_ports { singleStep  }]; #IO_L22N_T3_16 Sch=btnd
+
+#interrupts
+set_property -dict { PACKAGE_PIN E22  IOSTANDARD LVCMOS33} [get_ports { INT[0] }]; #IO_L22P_T3_16 Sch=sw[0]
+set_property -dict { PACKAGE_PIN F21  IOSTANDARD LVCMOS33} [get_ports { INT[1] }]; #IO_25_16 Sch=sw[1]
+set_property -dict { PACKAGE_PIN G21  IOSTANDARD LVCMOS33} [get_ports { INT[2] }]; #IO_L24P_T3_16 Sch=sw[2]
+set_property -dict { PACKAGE_PIN G22  IOSTANDARD LVCMOS33} [get_ports { INT[3] }]; #IO_L24N_T3_16 Sch=sw[3]
+set_property -dict { PACKAGE_PIN H17  IOSTANDARD LVCMOS33} [get_ports { INT[4] }]; #IO_L6P_T0_15 Sch=sw[4]
+
+#test unit
+set_property -dict { PACKAGE_PIN T14   IOSTANDARD LVCMOS25 } [get_ports { pc_current }]; #IO_L15P_T2_DQS_13 Sch=led[0]
 
 # Slide switches
 #set_property -dict { PACKAGE_PIN J15   IOSTANDARD LVCMOS33 } [get_ports { switches[0] }]; #IO_L24N_T3_RS0_15 Sch=sw[0]
@@ -44,7 +60,7 @@ create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports {cl
 # Pushbuttons
 
 # Active low
-set_property -dict { PACKAGE_PIN P17   IOSTANDARD LVCMOS33 } [get_ports { rst }]; #IO_L12P_T1_MRCC_14 Sch=btnl
+#set_property -dict { PACKAGE_PIN P17   IOSTANDARD LVCMOS33 } [get_ports { rst }]; #IO_L12P_T1_MRCC_14 Sch=btnl
 
 #=============================================================================
 
