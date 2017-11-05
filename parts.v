@@ -32,8 +32,9 @@ module signext
 endmodule
 
 module alu #(parameter wide = 8)
-(input [3:0] op, [wide-1:0] a, b, [4:0] shiftamount, output zero, reg trap, reg [wide-1:0] y);
+(input [3:0] op, [wide-1:0] a, b, [4:0] shiftamount, output zero, NE, reg trap, reg [wide-1:0] y);
     assign zero = (y == 'h0);
+    assign NE = (a != b);
     always @ (op, a, b)
         case (op)
             4'b0000: begin y = a & b; trap = 0; end
@@ -84,54 +85,92 @@ module dmem #(parameter wide = 8)
 endmodule
 
 module maindec
-(input EXL, IV, [5:0] op, [4:0] cpop, output reg branch, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, weCP0, weCP2, reg [1:0] prossSel, alu_op, jump);
-    reg [14:0] ctrl;
-    always @ (ctrl) {branch, jump, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, alu_op, prossSel, weCP0, weCP2} = ctrl;
-    //set interrupt to true
-    //always @ (EXL)
+(input EXL, hold, IV, [5:0] op, funct, [4:0] cpop, output reg holdACK, branch, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, weCP0, weCP2, BNE, INTCTRL, reg [1:0] prossSel, jump, reg [2:0] alu_op);
+    reg [16:0] ctrl;
+    always @ (ctrl) {branch, jump, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, alu_op, prossSel, weCP0, weCP2, BNE} = ctrl;
+    
     always @ (op)
+    
+        case(op)
+            6'b000100: INTCTRL <= 1'b1;//BEQ
+            6'b000010: INTCTRL <= 1'b1;//J
+            6'b000011: INTCTRL <= 1'b1;//JAL
+            6'b000101: INTCTRL <= 1'b1;//BNE
+            6'b000000:
+            begin
+                if(funct == 6'b001000)
+                begin
+                    INTCTRL <= 1'b1;
+                end
+            end
+            default: INTCTRL <= 1'b0;
+        endcase
+    
+    always @ (op, EXL)
         //interrupt logic
         if(EXL == 1)
         begin
-            jump = IV ? 2'b11 : 2'b10;
-        end else begin
+            ctrl[15:14] = IV ? 2'b11 : 2'b10;
+        end else 
+        begin
+            //put hold accept logic here
+            if(hold) holdACK = hold ? 1'b1 : 1'b0;
+            else begin
             case (op)
-                6'b000000: ctrl = 15'b0_00_0_1_1_0_0_0_10_00_0_0; // R-Type
-                6'b100011: ctrl = 15'b0_00_0_0_1_1_0_1_00_00_0_0; // LW
-                6'b101011: ctrl = 15'b0_00_0_0_0_1_1_0_00_00_0_0; // SW
-                6'b000100: ctrl = 15'b1_00_0_0_0_0_0_0_01_00_0_0; // BEQ
-                6'b001000: ctrl = 15'b0_00_0_0_1_1_0_0_00_00_0_0; // ADDI
-                6'b000010: ctrl = 15'b0_01_0_0_0_0_0_0_00_00_0_0; // J
-                6'b000011: ctrl = 15'b0_01_1_0_1_0_0_0_00_00_0_0; // JAL
+                6'b000000: ctrl = 17'b0_00_0_1_1_0_0_0_010_00_0_0_0; // R-Type
+                6'b100011: ctrl = 17'b0_00_0_0_1_1_0_1_000_00_0_0_0; // LW
+                6'b101011: ctrl = 17'b0_00_0_0_0_1_1_0_000_00_0_0_0; // SW
+                6'b000100: ctrl = 17'b1_00_0_0_0_0_0_0_001_00_0_0_0; // BEQ
+                6'b001000: ctrl = 17'b0_00_0_0_1_1_0_0_000_00_0_0_0; // ADDI
+                6'b000010: ctrl = 17'b0_01_0_0_0_0_0_0_000_00_0_0_0; // J
+                6'b000011: ctrl = 17'b0_01_1_0_1_0_0_0_000_00_0_0_0; // JAL
+                6'b001010: ctrl = 17'b0_00_0_0_1_1_0_0_011_00_0_0_0; // SLTI, untested
+                6'b000101: ctrl = 17'b0_00_0_0_0_0_0_0_001_00_0_0_1;//BNE
                 6'b010000: //MFC0/MTC0
                     begin
                         if(cpop == 5'b00000)
                         begin
                             //MFC0
-                            ctrl = 15'b0_00_0_0_1_0_0_0_00_01_0_0;
+                            ctrl = 17'b0_00_0_0_1_0_0_0_000_01_0_0_0;
                         end else if(cpop == 5'b00100)
                         begin
                             //MTC0
-                            ctrl = 15'b0_00_0_0_0_0_0_0_00_00_1_0;
+                            ctrl = 17'b0_00_0_0_0_0_0_0_000_00_1_0_0;
                         end
                     end
-                //6'b010010 //MTC2/MFC2
-                default: ctrl = 15'bx;
+                6'b010010: //MTC2/MFC2
+                    begin
+                        if(cpop == 5'b00000)
+                        begin
+                            //MFC2
+                            ctrl = 17'b0_00_0_0_1_0_0_0_000_10_0_0_0;
+                        end else if(cpop == 5'b00100)
+                        begin
+                            //MTC2
+                            ctrl = 17'b0_00_0_0_0_0_0_0_000_00_0_1_0;
+                        end
+                    //end of MXC2
+                    end
+                default: ctrl = 17'bx;
             endcase
+        //end of hold logic
         end
+        //end of logic
+        end
+        
 endmodule
 
 module auxdec
-(input [1:0] alu_op, [5:0] funct, output reg jump_reg, we_hi, we_lo, hi2reg, lo2reg, reg [3:0] alu_ctrl);
+(input [2:0] alu_op, [5:0] funct, output reg jump_reg, we_hi, we_lo, hi2reg, lo2reg, reg [3:0] alu_ctrl);
     reg [8:0] ctrl;
     //adjusting alucontrol
     always @ (ctrl) {jump_reg, we_hi, we_lo, hi2reg, lo2reg, alu_ctrl} = ctrl;
     always @ (alu_op, funct)
         case (alu_op)
-            2'b00: ctrl = 8'b0_0_0_0_0_010; // add
-            2'b01: ctrl = 8'b0_0_0_0_0_110; // sub
-            2'b11: ctrl = 8'b0_0_0_0_0_000; //SLTI
-            default: case (funct)
+            3'b000: ctrl = 9'b0_0_0_0_0_0010; // add
+            3'b001: ctrl = 9'b0_0_0_0_0_0110; // sub
+            3'b011: ctrl = 9'b0_0_0_0_0_0111; //SLTI
+            3'b010: case (funct)
                 6'b100000: ctrl = 9'b0_0_0_0_0_0010; // ADD
                 6'b100010: ctrl = 9'b0_0_0_0_0_0110; // SUB
                 6'b100100: ctrl = 9'b0_0_0_0_0_0000; // AND
@@ -158,33 +197,26 @@ endmodule
 
 `timescale 1ns / 1ps
 
-module clk_gen(input clk100MHz, input rst, output reg clk_sec, output reg clk_5KHz);
+module clk_gen(input clk450MHz, input rst, output reg clk_sec);
 
 integer count, count1;
 
-always@(posedge clk100MHz)
+always@(posedge clk450MHz)
     begin
         if(rst)
         begin
             count = 0;
-            count1 = 0;
             clk_sec = 0;
-            clk_5KHz =0;
         end
         else
         begin
-            if(count == 50000000) /* 50e6 x 10ns = 1/2sec, toggle twice for 1sec */
+            //if(count == 50000000) /* 50e6 x 10ns = 1/2sec, toggle twice for 1sec */
+            if(count == 604) /* 50e6 x 10ns = 1/2sec, toggle twice for 1sec */
             begin
             clk_sec = ~clk_sec;
             count = 0;
             end
-            if(count1 == 10000)
-            begin
-            clk_5KHz = ~clk_5KHz;
-            count1 = 0;
-            end
             count = count + 1;
-            count1 = count1 + 1;
         end
     end
 endmodule // end clk_gen
@@ -277,7 +309,68 @@ end
 endmodule
 
 
+module timer #(parameter ticks = 500) (input clk, rst, we, [4:0] addr, [31:0] dataIn, output flag);
+    
+    reg [31:0] counter;
+    reg [31:0] target;
+    
+    assign flag = (counter >= target) ? 1'b1 : 1'b0;
+    
+    always @ (posedge clk, posedge rst)
+    begin
+                
+        if(rst == 1)
+        begin
+            counter = 0;
+            target = ticks;
+        end
+        
+        case (addr)
+            5'b10110: 
+                begin
+                    if(we == 1)
+                    begin
+                        counter = dataIn;
+                    end
+                end
+            
+            5'b10111:
+                begin
+                    if(we == 1)
+                    begin
+                        target = dataIn;
+                    end
+                end
+        
+        endcase
+                
+        counter = counter + 1;
+        
+    end
 
+endmodule
+
+
+module debounce #(parameter width = 16) (
+	output reg pb_debounced, 
+	input wire pb, 
+	input wire clk
+	);
+
+localparam shift_max = (2**width)-1;
+
+reg [width-1:0] shift;
+
+always @ (posedge clk)
+begin
+	shift[width-2:0] <= shift[width-1:1];
+	shift[width-1] <= pb;
+	if (shift == shift_max)
+		pb_debounced <= 1'b1;
+	else
+		pb_debounced <= 1'b0;
+end
+endmodule
 
 
 //MODULES FOR HARDWARE

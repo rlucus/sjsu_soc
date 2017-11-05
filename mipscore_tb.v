@@ -3,23 +3,37 @@ module mipscore_tb();
 
     reg clk, rst= 0;
     wire [31:0] pc_current, instr, alu_out, wd_dm, rd_dm;
+    integer INT;
 
     mips_top u1 (.clk(clk), .rst(rst), 
         .pc_current(pc_current), .instr(instr), 
-        .alu_out(alu_out), .wd_dm(wd_dm), .rd_dm(rd_dm));
+        .alu_out(alu_out), .wd_dm(wd_dm), .rd_dm(rd_dm), .INT(INT[4:0]));
     initial begin
+        INT = 5'b00000;
         rst = 0;
         bounce();
         rst = 1;
         bounce();
         rst = 0;
         
-        while(pc_current != 32'h0000005C)
+        //while(pc_current != 32'h0000005C)
+        repeat (150)    
             begin
             bounce();
             end
         //$stop;
-    
+        
+        INT[4] = 1'b1;
+        #5;
+        //bounce();
+        #5;
+        INT = 0;
+        
+        repeat (10)
+        begin
+            bounce();
+        end
+        
         $display ("Test Done");
         $stop;
     

@@ -102,6 +102,8 @@ module block_to_word_disassembler #(parameter WSIZE = 32, parameter BSIZE = WSIZ
         count <= 3'd4; // Initial value of 4 indicates that the BTW has been fully ready and is ready for a new block
     end
 
+    //always @(posedge clock, posedge reset, posedge block_in) begin
+    
     always @(posedge clock, posedge reset) begin
         if (reset == 1'b1) begin
             count   <= 3'd4;
@@ -110,15 +112,16 @@ module block_to_word_disassembler #(parameter WSIZE = 32, parameter BSIZE = WSIZ
             regs[2] <= 1'b0;
             regs[3] <= 1'b0;
         end
-        else begin
-            if (block_in_ready && pull_state == PULL_BLOCK) begin
+    end
+    
+    always @(posedge clock, posedge block_in) begin
+           if (block_in_ready && pull_state == PULL_BLOCK) begin
                 { regs[0], regs[1], regs[2], regs[3] } <= block_in;
                 count <= 3'd0;
             end
             else if (! word_out_hold) begin
                 count <= count + 1;
             end
-        end
     end
     
     always @(word_out_hold, count) begin
@@ -156,7 +159,8 @@ endmodule
  ********************************************************************/
 module fifo #(parameter WSIZE = 32, parameter FIFOLEN = 1024) (
     input wire [WSIZE - 1:0] data_in,
-    output reg [WSIZE - 1:0] data_out,
+    //output reg [WSIZE - 1:0] data_out,
+    wire [WSIZE - 1:0] data_out,
     input write_en,
     input read_en,
 	output reg [WSIZE - 1:0] read_count,
@@ -182,49 +186,76 @@ module fifo #(parameter WSIZE = 32, parameter FIFOLEN = 1024) (
     endfunction
     
     wire trigger_read, trigger_write;
+    wire readTemp;
     assign trigger_write = clock & write_en;
-    assign trigger_read = clock & read_en;
+    //assign trigger_read = clock & read_en;
+    assign trigger_read = read_en;
     
     parameter ADDRLEN = ilog2(FIFOLEN);
     reg [ADDRLEN:0] read_addr;
     reg [ADDRLEN:0] write_addr;
 
     reg [WSIZE - 1:0] fifo_mem[FIFOLEN - 1:0]; // MSB used to tell if there's a word there or not
+    //reg [31:0] fifo_mem[311:0]; // MSB used to tell if there's a word there or not
 
 	initial begin
-		read_addr <= 'd0;
+		/*read_addr <= 'd0;
 		write_addr <= 'd0;
 		read_count <= 'd0;
-		write_count <= 'd0;
+		write_count <= 'd0;*/
+		read_addr = 'd0;
+        write_addr = 'd0;
+        read_count = 'd0;
+        write_count = 'd0;
 	end
+
+    always@(posedge reset) begin
+        read_addr = 'd0;
+        read_count = 'd0;
+        
+    end
 
     always @(posedge trigger_write, posedge reset) begin
 		if (reset) begin
-			write_addr <= 'd0;
-			write_count <= 'd0;
+			/*write_addr <= 'd0;
+			write_count <= 'd0;*/
+			write_addr = 'd0;
+            write_count = 'd0;
 		end
         else if (trigger_write && !fifo_full && !reset) begin
             fifo_mem[write_addr[ADDRLEN - 1:0]] <= data_in;
-            write_addr <= write_addr + 1;
-			write_count <= write_count + 'd1;
+            //fifo_mem[0] <= data_in;
+            /*write_addr <= write_addr + 1;
+			write_count <= write_count + 'd1;*/
+			write_addr <= write_addr + 1;
+            write_count <= write_count + 'd1;
         end
         // else Let the user pick it up via the signal wire
     end
     
-    always @(posedge trigger_read, posedge reset) begin
-		if (reset) begin
-			read_addr <= 'd0;
-			read_count <= 'd0;
-		end
-        else 
+    //always @(posedge trigger_read, posedge reset) begin
+    always @(posedge reset, posedge clock) begin
+		//if (reset) begin
+		//	read_addr = 'd0;
+		//	read_count = 'd0;
+		//end
+        //else 
         if (trigger_read && !fifo_empty && !reset) begin
-            data_out <= fifo_mem[read_addr[ADDRLEN - 1:0]];
-            read_addr <= read_addr + 'd1;
-			read_count <= read_count + 'd1;
+        //if (readTemp == 1'b1) begin
+            //data_out <= fifo_mem[read_addr[ADDRLEN - 1:0]];
+            //read_addr <= read_addr + 'd1;
+			//read_count <= read_count + 'd1;
+			read_addr <= read_addr + 'd1;
+            read_count <= read_count + 'd1;
         end
         // Leave existing data on the output buffer, signal to clue the user
     end
     
+    //assign rd1 = (ra1) ? rf[ra1] : 0;
+    //assign rd2 = (ra2) ? rf[ra2] : 0;
+    
+    assign data_out = (trigger_read && !fifo_empty) ? fifo_mem[read_addr[ADDRLEN - 1:0]] : 0;
+    //assign readTemp = trigger_read && (!(fifo_empty)) && (!(reset));
     assign fifo_empty = (write_addr - read_addr) == 0;
     assign fifo_full  = (write_addr - read_addr) == FIFOLEN;
 endmodule
