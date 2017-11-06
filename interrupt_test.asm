@@ -1,5 +1,5 @@
 	.data
-	VAR:	.word 0x1234, 0x5678, 0x9ABC
+	INTR_SET:	.word 0x0000
 	.text # Starting off at 0x0000_0000
 	### Comment notation (wildcards denoted with regex):
 	###
@@ -28,15 +28,29 @@ __INIT:
 	j __HALT
 	
 	.ktext 0x00000180
-__INTR: 
+__INTR: ## Regs used: T0, T1
 	mfc0 $s0, $12 # Turn off the master interrupt flag
 	srl $t0, $t0, 0x1
 	sll $t0, $t0, 0x1
 	mtc0 $12, $t0
 	
 	mfc0 $t0, $13 # Grab the interrupt statuses
-	addi $t1, $zero, 0x007C # N2: Mask out exception code
-	and  $t2, $t0, $t1
+	addi $t1, $zero, 0x007C # N2: Mask out everything except exception code
+	and  $t1, $t0, $t1
+	
+	beq $t1, $zero, IS_INTR
+	IS_NOT_INTR:
+		srl $t1, $t1, 1 # N2: Align exception code to bits 6 through 1, and leave bit 0 to as 0 signalling !is_external
+		j END_IS_INTR
+	IS_INTR:
+		addi $t1, $zero, 0xFC00 # N3: Mask out everything except external interrupt flags then align to bits 6 through 1
+		and $t1, $t1, $t0
+		sll $t1, $t1, 0x9
+		addi $t1, $t1, 0x1 # Signal is_external by setting bit 0 to 1
+	END_IS_INTR:
+	
+	sw  $t1, INTR_SET($zero)
+	# TODO: figure out the rest of the test ISR
 	
 __KMAIN:
 	WHILE_SCHED_SLICE:
@@ -49,8 +63,10 @@ __KMAIN:
 	beq $t1, $zero, FOO # TODO: Must double test branch due to quirk with the processor
 	BAR:	# Else BAR
 		xor $zero, $zero, $zero
+		j END_FOO
 	FOO:	# Then FOO
 		xor $zero, $zero, $zero
+	END_FOO:
 	
 	j WHILE_SCHED_SLICE
 	# Should not return out of main, but here for correctness:
