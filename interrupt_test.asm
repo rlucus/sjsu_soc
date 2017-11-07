@@ -51,7 +51,94 @@ __INIT:
 	
 	j __HALT
 	
-	.text 0x00000180 # Align ISR at 0x180
+		xor $zero, $zero, $zero # N(whatever): Padding instructions to align the ISR in the program to address 0x180
+		xor $zero, $zero, $zero # Note: Remove exactly one instruction for every instruction added above this comment!
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		
+	#.text 0x00000180 # Align ISR at 0x180
 __INTR: ## Regs used: T0, T1
 	mfc0 $t8, $12 # Turn off the master interrupt flag
 	srl $t8, $t8, 0x1
@@ -94,7 +181,16 @@ __INTR: ## Regs used: T0, T1
 	jr $t9 # End ISR
 	
 	## Main Program Start
-	.text 0x00000500 # VERY IMPORTANT: Adjust this address if the ISR grows!!
+	#.text 0x00000500 # VERY IMPORTANT: Adjust this address if the ISR grows!!
+		xor $zero, $zero, $zero # N8: Padding instructions to separate ISR from KMAIN
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+		xor $zero, $zero, $zero
+	
 __KMAIN:
 	WHILE_SCHED_SLICE:
 	addi $s0, $s0, 1 # Just a simple counter to while away the time until I can properly implement this
