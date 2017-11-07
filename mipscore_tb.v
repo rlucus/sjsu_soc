@@ -17,13 +17,14 @@ module mipscore_tb();
         rst = 0;
         
         //while(pc_current != 32'h0000005C)
-        repeat (150)    
+        //repeat (150)
+        repeat (600)    
             begin
             bounce();
             end
         //$stop;
         
-        INT[4] = 1'b1;
+        INT[3] = 1'b1;
         #5;
         //bounce();
         #5;

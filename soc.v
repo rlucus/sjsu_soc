@@ -1,4 +1,4 @@
-module soc (input clk450MHz, rst, [4:0] INT , output pc_current);
+module soc (input clk450MHz, rst, [3:0] INT , output pc_current);
 
     wire clk_sec;
     wire [30:0] test;

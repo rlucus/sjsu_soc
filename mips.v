@@ -2,7 +2,7 @@
 
 module mips
 (input         clk, rst,
- input  [4:0]  INT,
+ input  [3:0]  INT,
  input  [31:0] instr, rd_dm,
  output        we_dm,
  output [31:0] pc_current, alu_out, wd_dm);    
@@ -10,7 +10,7 @@ module mips
     //wire [31:0] pc_current, alu_out, wd_dm;
     //end of wires for testing
     
-    wire       pc_src, link, jump_reg ,reg_dst, we_reg, alu_src, we_hi, we_lo, hi2reg, lo2reg, zero, NE, dm2reg, weCP0, weCP2, IV, EXL, hold, holdACK, INTCTRL;
+    wire       pc_src, link, jump_reg ,reg_dst, we_reg, alu_src, we_hi, we_lo, hi2reg, lo2reg, zero, NE, dm2reg, weCP0, weCP2, IV, EXL, hold, holdACK, INTCTRL, timer;
     wire [1:0] jump, prossSel;
     wire [3:0] alu_ctrl;
     wire [4:0] cpop;
@@ -22,14 +22,14 @@ module mips
     controlunit CU (.zero(zero), .op(instr[31:26]), .funct(instr[5:0]), .pc_src(pc_src), .jump(jump), 
         .link(link), .jump_reg(jump_reg) ,.reg_dst(reg_dst), .we_reg(we_reg), .alu_src(alu_src), .we_hi(we_hi), .we_lo(we_lo), 
         .hi2reg(hi2reg), .lo2reg(lo2reg), .we_dm(we_dm), .dm2reg(dm2reg), .alu_ctrl(alu_ctrl), .prossSel(prossSel), .weCP0(weCP0), .weCP2(weCP2), .cpop(instr[25:21]),
-        .IV(IV), .EXL(EXL), .hold(hold), .holdACK(holdACK), .NE(NE), .INTCTRL(INTCTRL));
+        .IV(IV), .EXL(EXL), .hold(hold), .holdACK(holdACK), .NE(NE), .INTCTRL(INTCTRL), .pc_current(pc_current));
 endmodule
 
 module datapath
 (input         clk, rst, pc_src, link, jump_reg, reg_dst, we_reg, alu_src, we_hi, we_lo, hi2reg, lo2reg, dm2reg, weCP0, weCP2, holdACK, INTCTRL,
  input [1:0] jump, prossSel,
  input  [3:0]  alu_ctrl,
- input [4:0] interrupt,
+ input [3:0] interrupt,
  input  [25:0] instr, 
  input  [31:0] rd_dm,
  output        zero, NE, IV, EXL, hold, 
@@ -68,7 +68,9 @@ module datapath
     mux4    #(32) pross_mux  (.sel(prossSel), .a(alu_out), .b(CPzerod), .c(32'b0), .d(32'b0), .y(CPALU));
     //Coprocessor logic
     mux2    #(32) pcselctor (.sel(INTCTRL), .a(pc_plus4), .b(pc_current), .y(pc_adjust));
-    CPzero        CP0        (.clk(clk), .rst(rst), .we1(weCP0), .alu_trap(trap), .addr(instr[15:11]), .interrupt({interrupt, 1'b0/*CP2rdy*/}), .wd(wd_dm), .pcp4(pc_adjust), .exl(EXL), .iv(IV), .rd1(CPzerod));
+    CPzero        CP0        (.clk(clk), .rst(rst), .we1(weCP0), .alu_trap(trap), .addr(instr[15:11]), .interrupt({timer, interrupt, 1'b0/*CP2rdy*/}), .wd(wd_dm), .pcp4(pc_adjust), .exl(EXL), .iv(IV), .rd1(CPzerod));
+    //logic for timer
+    timer #(500) timer1 (.clk(clk), .rst(rst), .we(weCP0), .addr(instr[15:11]), .dataIn(wd_dm), .flag(timer));
     //aes256_coprocessor CP2   (.data_in(wd_dm), .addr(instr[20:16]), .write_en(weCP2), .data_out(CPtwod), .clock(clk), .interrupt(CP2rdy));
 
 
@@ -81,6 +83,7 @@ module controlunit
 (input        zero, IV, EXL, hold, NE,
  input  [4:0] cpop,
  input  [5:0] op, funct,
+ input [31:0] pc_current,
  output       pc_src, link, jump_reg, reg_dst, we_reg, alu_src, we_hi, we_lo, hi2reg, lo2reg, we_dm, dm2reg, weCP0, weCP2, holdACK, INTCTRL,
  output [1:0] jump, prossSel,
  output [3:0] alu_ctrl);
@@ -88,7 +91,7 @@ module controlunit
     wire [2:0] alu_op;
     assign pc_src = (branch & zero) | (BNE & NE);
     maindec MD (.op(op), .branch(branch), .jump(jump), .link(link), .reg_dst(reg_dst), .we_reg(we_reg), .alu_src(alu_src), .we_dm(we_dm), .dm2reg(dm2reg), .alu_op(alu_op), .prossSel(prossSel), .weCP0(weCP0), .weCP2(weCP2),
-    .cpop(cpop), .IV(IV), .EXL(EXL), .hold(hold), .holdACK(holdACK), .BNE(BNE), .INTCTRL(INTCTRL), .funct(funct));
+    .cpop(cpop), .IV(IV), .EXL(EXL), .hold(hold), .holdACK(holdACK), .BNE(BNE), .INTCTRL(INTCTRL), .funct(funct), .pc_current(pc_current));
     auxdec  AD (.alu_op(alu_op), .funct(funct), .jump_reg(jump_reg), .we_hi(we_hi), .we_lo(we_lo), .hi2reg(hi2reg), .lo2reg(lo2reg), .alu_ctrl(alu_ctrl));
 
 endmodule
