@@ -2,6 +2,8 @@ module CPzero
 (input clk, rst, we1, alu_trap, [4:0] addr, [5:0] interrupt, [31:0] wd, pcp4,  
  output exl, iv, [31:0] rd1);
     
+    
+    
     // if need full space then use the following line.
     // reg [32:0] rf [0:31];
     reg [31:0] rf [0:15];
@@ -201,7 +203,8 @@ end
                 5'b01110:                          //reg 14
                     if(we1) begin
                         rf[addr] <= wd;
-                    end
+                    end   
+                 
             endcase // END case(addr)
     //end of interrupt logic
     //end

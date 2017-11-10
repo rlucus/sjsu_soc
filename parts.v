@@ -71,8 +71,10 @@ module regfile #(parameter wide = 8)
 endmodule
 
 module imem #(parameter wide = 8)
-(input [5:0] a, output [wide-1:0] y);
-    reg [wide-1:0] rom [0:63];
+//(input [5:0] a, output [wide-1:0] y);
+(input [31:0] a, output [wide-1:0] y);
+    //reg [wide-1:0] rom [0:63];
+    reg [wide-1:0] rom [0:400];
     initial $readmemh ("memfile.dat", rom);
     assign y = rom[a];
 endmodule
@@ -85,7 +87,7 @@ module dmem #(parameter wide = 8)
 endmodule
 
 module maindec
-(input EXL, hold, IV, [5:0] op, funct, [4:0] cpop, output reg holdACK, branch, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, weCP0, weCP2, BNE, INTCTRL, reg [1:0] prossSel, jump, reg [2:0] alu_op);
+(input EXL, hold, IV, [5:0] op, funct, [4:0] cpop, [31:0] pc_current, output reg holdACK, branch, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, weCP0, weCP2, BNE, INTCTRL, reg [1:0] prossSel, jump, reg [2:0] alu_op);
     reg [16:0] ctrl;
     always @ (ctrl) {branch, jump, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, alu_op, prossSel, weCP0, weCP2, BNE} = ctrl;
     
@@ -108,9 +110,9 @@ module maindec
     
     always @ (op, EXL)
         //interrupt logic
-        if(EXL == 1)
+        if((EXL == 1) & ((pc_current < 32'h180) | (pc_current > 32'h200)))
         begin
-            ctrl[15:14] = IV ? 2'b11 : 2'b10;
+            ctrl[15:14] = IV ? 2'b11 : 2'b10; 
         end else 
         begin
             //put hold accept logic here
@@ -191,6 +193,21 @@ module auxdec
                 default: ctrl = 8'bx;
             endcase
         endcase
+endmodule
+
+module INTPC #(parameter location = 384) (input rst, clk, output [31:0] INTPC);
+
+    reg [31:0] address = location;
+    assign INTPC = address;
+    always @ (posedge clk)
+        if(rst == 0)
+        begin
+            address = location;
+        end else
+        begin
+            address = address + 4;
+        end
+
 endmodule
 
 //MODULES FOR HARDWARE
@@ -316,7 +333,7 @@ module timer #(parameter ticks = 500) (input clk, rst, we, [4:0] addr, [31:0] da
     
     assign flag = (counter >= target) ? 1'b1 : 1'b0;
     
-    always @ (posedge clk, posedge rst)
+    always @ (posedge clk)
     begin
                 
         if(rst == 1)
