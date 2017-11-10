@@ -76,7 +76,7 @@ module imem #(parameter wide = 8)
     //reg [wide-1:0] rom [0:63];
     reg [wide-1:0] rom [0:400];
     initial $readmemh ("memfile.dat", rom);
-    assign y = rom[a];
+    assign y = rom[(a/4)];
 endmodule
 
 module dmem #(parameter wide = 8)

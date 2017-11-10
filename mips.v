@@ -44,7 +44,7 @@ module datapath
     mux2    #(32) pc_jr_mux  (.sel(jump_reg), .a(pc_plus4), .b(alu_pa), .y(jra));
     mux2    #(32) pc_src_mux (.sel(pc_src), .a(jra), .b(bta), .y(pc_pre));
     //locations for IVT
-    mux4    #(32) pc_jmp_mux (.sel(jump), .a(pc_pre), .b(jta), .c(32'h180), .d(32'h200), .y(pc_next));
+    mux4    #(32) pc_jmp_mux (.sel(jump), .a(pc_pre), .b(jta), .c(32'h0000_0180), .d(32'h0000_0200), .y(pc_next));
     dreg    #(32) pc_reg     (.clk(clk), .rst(rst), .en(1), .d(pc_next), .q(pc_current));
     adder   #(32) pc_add4    (.a(pc_current), .b(4), .y(pc_plus4));
     //added for logic of CP0
