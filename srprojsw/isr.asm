@@ -35,9 +35,6 @@
 	#    5    0    0    0      8    5    0    1
 
 __INIT:
-	# Two zero test instructions
-	mtc0 $zero, $12
-	mtc0 $zero, $13
 	## This is where critical peripheral initializtion takes place
 	addi $t1, $zero, 0x5000 # N4: Enable interrupts, CP0, and CP2
 	#sll $t1, $t1, 0x10
@@ -54,8 +51,8 @@ __INIT:
 	
 	j __HALT
 	
-		#nop # N(whatever): Padding instructions to align the ISR in the program to address 0x180
-		#nop # Note: Remove exactly one instruction for every instruction added above this comment!
+		nop # N(whatever): Padding instructions to align the ISR in the program to address 0x180
+		nop # Note: Remove exactly one instruction for every instruction added above this comment!
 		nop
 		nop
 		nop
