@@ -166,7 +166,7 @@ __INTR: ## Regs used: T0, T1
 	END_IS_EXTERN:
 	
 	sw  $t9, INTR_CODE($zero)
-	
+	mfc0 $t7, $14 # Test instruction to see when this register horks
 	# TODO: Update this such that only the activated interrupt is triggered
 	mfc0 $t9, $12 # N7: Reset interrupt controls
 	addi $t8, $t8, 0xFF
