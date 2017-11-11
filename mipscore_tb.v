@@ -24,7 +24,7 @@ module mipscore_tb();
             end
         //$stop;
         
-        INT[3] = 1'b1;
+        INT = 5'b11111;
         #5;
         //bounce();
         #5;
