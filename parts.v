@@ -108,7 +108,7 @@ module maindec
             default: INTCTRL <= 1'b0;
         endcase
     
-    always @ (op, EXL)
+    always @ (op, EXL, cpop)
         //interrupt logic
         if((EXL == 1) & ((pc_current < 32'h180) | (pc_current > 32'h200)))
         begin
@@ -130,15 +130,22 @@ module maindec
                 6'b000101: ctrl = 17'b0_00_0_0_0_0_0_0_001_00_0_0_1;//BNE
                 6'b010000: //MFC0/MTC0
                     begin
-                        if(cpop == 5'b00000)
-                        begin
+                        //ctrl = (cpop == 5'b00000) ? 17'b0_00_0_0_1_0_0_0_000_01_0_0_0 : 17'b0_00_0_0_0_0_0_0_000_00_1_0_0;
+                        case (cpop)
+                        //MFC0
+                        5'b00000: ctrl = 17'b0_00_0_0_1_0_0_0_000_01_0_0_0;
+                        //MTC0
+                        5'b00100: ctrl = 17'b0_00_0_0_0_0_0_0_000_00_1_0_0;
+                        endcase
+                        //if(cpop == 5'b00000)
+                        //begin
                             //MFC0
-                            ctrl = 17'b0_00_0_0_1_0_0_0_000_01_0_0_0;
-                        end else if(cpop == 5'b00100)
-                        begin
+                        //    ctrl = 17'b0_00_0_0_1_0_0_0_000_01_0_0_0;
+                        //end else if(cpop == 5'b00100)
+                        //begin
                             //MTC0
-                            ctrl = 17'b0_00_0_0_0_0_0_0_000_00_1_0_0;
-                        end
+                            //ctrl = 17'b0_00_0_0_0_0_0_0_000_00_1_0_0;
+                        //end
                     end
                 6'b010010: //MTC2/MFC2
                     begin
