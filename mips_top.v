@@ -1,7 +1,15 @@
 module mips_top
-(input clk, rst, output [31:0] pc_current, instr, alu_out, wd_dm, rd_dm);
+(input clk, rst, [3:0] INT, output [31:0] pc_current, instr, alu_out, wd_dm, rd_dm);
+    //wire [31:0] instr, alu_out, wd_dm, rd_dm;
     wire we_dm;
-    mips      MIPS (clk, rst, instr, rd_dm, we_dm, pc_current, alu_out, wd_dm);
-    imem #(32)IMEM (pc_current[7:2], instr);
-    dmem #(32)DMEM (clk, we_dm, alu_out[5:0], wd_dm, rd_dm);
+    mips      MIPS (.clk(clk), .rst(rst), .instr(instr), .rd_dm(rd_dm), .we_dm(we_dm), .pc_current(pc_current), .alu_out(alu_out), .wd_dm(wd_dm), .INT(INT));
+    //imem #(32)IMEM (.a(pc_current[7:2]), .y(instr));
+    imem #(32)IMEM (.a(pc_current), .y(instr));
+    dmem #(32)DMEM (.clk(clk), .we(we_dm), .a(alu_out[5:0]), .d(wd_dm), .q(rd_dm));
+   
+    //mips      MIPS (.clk(clk_5KHz), .rst(rst), .instr(instr), .rd_dm(rd_dm), .we_dm(we_dm), .pc_current(pc_current), .alu_out(alu_out), .wd_dm(wd_dm));
+    //dmem #(32)DMEM (.clk(clk_5KHz), .we(we_dm), .a(alu_out[5:0]), .d(wd_dm), .q(rd_dm));
+    
+    
 endmodule
+

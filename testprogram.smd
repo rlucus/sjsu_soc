@@ -1,10 +1,18 @@
 main:	ADDI $a0, $zero, 0x0005
+	ADDI $v0, $zero, 0x000F
+	SLL  $v0, $v0, 12
+	ADDI $v0, $v0, 0x0F01
+	SLTI $v1, $a0, 1
 	ADDI $a1, $zero, 0x0009
 	ADDI $a2, $zero, 0x0002
-	ADDI $t6, $zero, 0xFFFF
-	ADDI $t7, $zero, 0xFFFF
+	ADDI $t6, $zero, 0xFF
+	ADDI $t7, $zero, 0xFF
+	SLTI $t9, $a0, 6
+        MTC0 $zero, $12
+	MTC0 $v0, $12
+	MTC0 $zero, $13
+	MTC0 $zero, $14
 	XOR $t5, $t6, $t7
-	nop
 	XOR $t5, $zero, $t6
 	SLL $a2, $a2, 1
 	SLL $a2, $a2, 1
@@ -13,12 +21,12 @@ main:	ADDI $a0, $zero, 0x0005
 	SUB $a3, $a3, $a2
 	ADD $a2, $a1, $a0
 	SUB $a3, $a1, $a0
-	SRA $a3, $a3, 1
+	#SRA $a3, $a3, 1
 	AND $t0, $a1, $a0
 	OR $t1, $a1, $a0
 	SLT $t2, $a0, $a1
-	#SW $a0, 4($zero)
-	#LW $t3, 4($zero)
+	SW $a0, 4($zero)
+	LW $t3, 4($zero)
 	JAL test
 	MULTU $a0, $a1
 	MFHI $t5
