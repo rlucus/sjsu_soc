@@ -178,7 +178,7 @@ __INTR: ## Regs used: T0, T1
 	mtc0 $t9, $12
 	and $t9, $t9, 0x8501
 	mtc0 $t9, $12
-	
+	nop # N?: How many NOPs for a Klondike bar?
 	mfc0 $t9, $14 # N2: return to whence we've interrupted
 	jr $t9 # End ISR
 	
