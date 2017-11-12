@@ -27,7 +27,7 @@ module CP2(
 	output wire [31:0] rdData_cpu,
 
 	output reg        we_dma, 
-	output reg [19:0] addr_dma, 
+	output reg [31:0] addr_dma, 
 	input  wire[31:0] wrData_dma,
 	output reg [31:0] rdData_dma,
 
@@ -156,7 +156,7 @@ module CP2(
             dmaSet    : begin
                         reg_cpu[0][24]<= 1;
                         //self.clk = clk*1;				// reset clk
-                        addr_dma  <= reg_cpu[1][19:0]; 
+                        addr_dma  <= reg_cpu[1][31:0]; 
                         we_dma     = 0;
                         i          = 0;
                         length     = 0;
@@ -207,7 +207,7 @@ module CP2(
     
             dmaWriteA : begin
                         we_dma    <= 1;
-                        addr_dma  <= reg_cpu[1][19:0]; 
+                        addr_dma  <= reg_cpu[1][31:0]; 
                         state_dma  = dmaWriteB;	                  end         
             dmaWriteB : begin
                         rdData_dma = r00[i];
