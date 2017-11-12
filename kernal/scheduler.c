@@ -3,7 +3,7 @@
 void schedInit(void) {
 
 	//array of base addresses for the PCB of each task
-	const int* entry[7] = {	0x00007F00,0x00007F20,0x00007F40,0x00007F60,
+	int* const entry[7] = {	0x00007F00,0x00007F20,0x00007F40,0x00007F60,
 							0x00007F80,0x00007FA0,0x00007FC0,0x00007FE0};
 	const int gp=28, sp=29, fp=30, ra=31;
 
@@ -27,7 +27,7 @@ void schedInit(void) {
 	//this needs to be modified if the number of tasks
 	*entry[0] |= (3 << 0); //mark first 2 tasks valid;
 	*entry[0] |= (1 << 13); //mark last task as running, so that task0 will start first
-	
+
 	//start sched
 	sched();
 
@@ -37,12 +37,23 @@ void schedInit(void) {
 
 void sched(void) {
 	const int* status = 0x00007F00;
+	//have use of status-1 through status-F
+
 //get currently running task
 
-//save registers to 
+//save registers to PCB
+
+//get PC from CP0 and put into PCB
 
 //get next valid task
 
+//clear current running status
+
+//set new running status
+
+//load registers from PCB
+
+//load PC into CP0
 }
 
 
