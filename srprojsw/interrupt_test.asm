@@ -165,9 +165,9 @@ __INTR: ## Regs used: T0, T1
 		addi $t9 $t9, 0x1 # Signal is_external by setting bit 0 to 1
 	END_IS_EXTERN:
 	
-	sw  $t9, INTR_CODE($zero)
-	mfc0 $t7, $14 # Test instruction to see when this register horks
-	# TODO: Update this such that only the activated interrupt is triggered
+	sw  $t9, INTR_CODE($zero) # This is where the interrupt routine should be taken
+	
+	# TODO: Update this such that only the activated interrupt is reset
 	mfc0 $t9, $12 # N7: Reset interrupt controls
 	addi $t8, $t8, 0xFF
 	sll $t8, $t8, 0x8
@@ -211,5 +211,35 @@ __KMAIN:
 	j WHILE_SCHED_SLICE
 	# Should not return out of main, but here for correctness:
 	jr $ra
+	
+PROC_INTR_HANDLE_AES:
+	mfc0 $t9, $12 # N7: Reset interrupt controls
+	addi $t8, $t8, 0xFF
+	sll $t8, $t8, 0x8
+	addi $t8, $t8, 0xFF
+	sll $t8, $t8, 0x10
+	addi $t8 $t8, 0x00FF
+	and $t9, $t9, $t8
+	mtc0 $t9, $12
+	and $t9, $t9, 0x8501
+	mtc0 $t9, $12
+	nop # N?: How many NOPs for a Klondike bar?
+	mfc0 $t9, $14 # N2: return to whence we've interrupted
+	jr $k0 # K0 designated as return address for interrupt handlers
+	
+PROC_INTR_HANDLE_TIMER:
+	mfc0 $t9, $12 # N7: Reset interrupt controls
+	addi $t8, $t8, 0xFF
+	sll $t8, $t8, 0x8
+	addi $t8, $t8, 0xFF
+	sll $t8, $t8, 0x10
+	addi $t8 $t8, 0x00FF
+	and $t9, $t9, $t8
+	mtc0 $t9, $12
+	and $t9, $t9, 0x8501
+	mtc0 $t9, $12
+	nop # N?: How many NOPs for a Klondike bar?
+	mfc0 $t9, $14 # N2: return to whence we've interrupted
+	jr $k0 # K0 designated as return address for interrupt handlers
 	
 __HALT:	# End of program
