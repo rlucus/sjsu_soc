@@ -16,7 +16,7 @@ set_property -dict { PACKAGE_PIN E22  IOSTANDARD LVCMOS33} [get_ports { INT[0] }
 set_property -dict { PACKAGE_PIN F21  IOSTANDARD LVCMOS33} [get_ports { INT[1] }]; #IO_25_16 Sch=sw[1]
 set_property -dict { PACKAGE_PIN G21  IOSTANDARD LVCMOS33} [get_ports { INT[2] }]; #IO_L24P_T3_16 Sch=sw[2]
 set_property -dict { PACKAGE_PIN G22  IOSTANDARD LVCMOS33} [get_ports { INT[3] }]; #IO_L24N_T3_16 Sch=sw[3]
-set_property -dict { PACKAGE_PIN H17  IOSTANDARD LVCMOS33} [get_ports { INT[4] }]; #IO_L6P_T0_15 Sch=sw[4]
+#set_property -dict { PACKAGE_PIN H17  IOSTANDARD LVCMOS33} [get_ports { INT[4] }]; #IO_L6P_T0_15 Sch=sw[4]
 
 #test unit
 set_property -dict { PACKAGE_PIN T14   IOSTANDARD LVCMOS25 } [get_ports { pc_current }]; #IO_L15P_T2_DQS_13 Sch=led[0]

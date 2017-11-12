@@ -2,8 +2,6 @@ module CPzero
 (input clk, rst, we1, alu_trap, [4:0] addr, [5:0] interrupt, [31:0] wd, pcp4,  
  output exl, iv, [31:0] rd1);
     
-    
-    
     // if need full space then use the following line.
     // reg [32:0] rf [0:31];
     reg [31:0] rf [0:15];
@@ -13,12 +11,16 @@ module CPzero
     // external flag assigns
     assign iv  = rf[13][23];            // handler location, which location to select (180|200)
     assign exl = rf[12][1];             // external flag to CU for any interrupt
-    always @ (posedge exl) begin        // capture pc+4 Return addr when INT flag is set
-        rf[14] = pcp4;
+    always @ (posedge exl /*or (addr == 5'b01110)*/) begin        // capture pc+4 Return addr when INT flag is set
+/*        if(we1 && (addr == 5'b01110)) begin
+            rf[addr] <= wd;
+        end else if(exl) begin*/
+            rf[14] <= pcp4;
+//        end
     end
  
  //MUST BE UNCOMMENTED TO RUN TESTBENCH.   
-/*    always @ (posedge rst) begin
+ /*   always @ (posedge rst) begin
         // MIPS ISA leaves most of the values within this module as 
         // undefined on startup. To allow functional verification in the 
         //testbench, used register files 12-14 are initilized to zero
@@ -200,11 +202,10 @@ end
                             rf[addr][8] <= wd[8];
                         end       
                     end
-                5'b01110:                          //reg 14
-                    if(we1) begin
-                        rf[addr] <= wd;
-                    end   
-                 
+                //5'b01110:                          //reg 14
+                //    if(we1) begin
+                //        rf[addr] <= wd;
+                //    end
             endcase // END case(addr)
     //end of interrupt logic
     //end

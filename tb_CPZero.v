@@ -126,7 +126,7 @@ module tb_CPZero();
         tickTock;     
         testOutput;                     // test 1
 
-        //#5;//TEST TO REMOVE
+        #5;//TEST TO REMOVE
 
         // hardware interrupt registers/flags exl async
         addr = 13; interrupt = 6'b1000_01;
