@@ -62,11 +62,12 @@
 
 	.text # Starting off at 0x0000_0000
 __INIT:
-	addi $t0, $zero 0x1F3A # N6: memory I/O test instructions
+	addi $t0, $zero 0x1F3A # N7: memory I/O test instructions
 	sw $t0, TEST_WORD($zero)
 	add $t1, $zero, $zero
 	lw $t1, TEST_WORD($zero)
-	beq $t0, $t1, MEMIO_TEST_OK
+	slt $t2, $t0, $t1
+	beq $t2, $zero, MEMIO_TEST_OK
 	j __HALT
 MEMIO_TEST_OK:
 	# Two zero test instructions
@@ -97,7 +98,7 @@ MEMIO_TEST_OK:
 		#nop
 		#nop
 		#nop
-		nop
+		#nop
 		nop
 		nop
 		nop
