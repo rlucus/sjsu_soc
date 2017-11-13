@@ -63,16 +63,9 @@ module dreg #(parameter wide = 8)
 endmodule
 
 module regfile #(parameter wide = 8)
-(input clk, rst, we, [4:0] wa, ra1, ra2, [wide-1:0] wd, output [wide-1:0] rd1, rd2);
+(input clk, we, [4:0] wa, ra1, ra2, [wide-1:0] wd, output [wide-1:0] rd1, rd2);
     reg [wide-1:0] rf [0:31];
-    reg [5:0] i;
-    always @ (posedge clk, posedge rst) begin
-        if(rst) begin
-            for(i=0; i<wide; i=i+1)begin
-                rf[i] <= 0;
-            end
-        end else if (we) rf[wa] <= wd;
-    end    
+    always @ (posedge clk) if (we) rf[wa] <= wd;
     assign rd1 = (ra1) ? rf[ra1] : 0;
     assign rd2 = (ra2) ? rf[ra2] : 0;
 endmodule
@@ -94,10 +87,11 @@ module dmem #(parameter wide = 8)
 endmodule
 
 module maindec
-(input EXL, hold, IV, [5:0] op, funct, [4:0] cpop, [31:0] pc_current, output reg holdACK, branch, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, weCP0, weCP2, BNE, INTCTRL, reg [1:0] prossSel, jump, reg [2:0] alu_op);
+(input EXL, hold, IV, [5:0] op, funct, [4:0] cpop, [31:0] pc_current, output wire holdACK, output reg branch, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, weCP0, weCP2, BNE, INTCTRL, reg [1:0] prossSel, jump, reg [2:0] alu_op);
     reg [16:0] ctrl;
+    reg tempHold = 0; 
     always @ (ctrl) {branch, jump, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, alu_op, prossSel, weCP0, weCP2, BNE} = ctrl;
-    
+    assign holdACK = tempHold ? 1'b1 : 0;
     always @ (op)
     
         case(op)
@@ -123,7 +117,7 @@ module maindec
         end else 
         begin
             //put hold accept logic here
-            if(hold) holdACK = hold ? 1'b1 : 1'b0;
+            if(hold) tempHold = hold ? 1'b1 : 1'b0;
             else begin
             case (op)
                 6'b000000: ctrl = 17'b0_00_0_1_1_0_0_0_010_00_0_0_0; // R-Type
