@@ -75,13 +75,13 @@ module imem #(parameter wide = 8)
 (input [31:0] a, output [wide-1:0] y);
     //reg [wide-1:0] rom [0:63];
     reg [wide-1:0] rom [0:1000];
-    initial $readmemh ("memfile.dat", rom);
+    initial $readmemh ("isr.mem", rom);
     assign y = rom[(a/4)];
 endmodule
 
 module dmem #(parameter wide = 8)
 (input clk, we, [31:0] a, [wide-1:0] d, output [wide-1:0] q);
-    reg [wide-1:0] ram [0:1000];
+    reg [wide-1:0] ram [0:131071];
     always @ (posedge clk) if (we) ram[a] <= d;
     assign q = ram[a/4];
 endmodule
