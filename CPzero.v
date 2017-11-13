@@ -50,24 +50,6 @@ module CPzero
 
 /*    always @ (interrupt) begin
         // set INT flags
-        if (rf[12][10])
-            if(interrupt[0]) rf[13][10] <= 1'b1;
-        if (rf[12][11])
-            if(interrupt[1]) rf[13][11] <= 1'b1;
-        if (rf[12][12])
-            if(interrupt[2]) rf[13][12] <= 1'b1;
-        if (rf[12][13])
-            if(interrupt[3]) rf[13][13] <= 1'b1;
-        if (rf[12][14])
-            if(interrupt[4]) rf[13][14] <= 1'b1;
-        if (rf[12][15])
-            if(interrupt[5]) rf[13][15] <= 1'b1;
-    end*/
-
-
-/*
-    always @ (interrupt) begin
-        // set INT flags
         if (rf[12][0] == 1) begin             
             rf[13][10] <= (interrupt[0] & rf[12][10]);
             rf[13][11] <= (interrupt[1] & rf[12][11]);
