@@ -57,6 +57,7 @@
 	EXCP_CODE:	.word 0x0000
 	TRAP0_SET:	.word 0x0000
 	AES_DONE:	.word 0x0000
+	TIMER_TRIGGER:	.word 0x0000
 
 	.text # Starting off at 0x0000_0000
 __INIT:
@@ -250,7 +251,7 @@ __X180_HANDLER: ## Regs clobbered: K0
 			jal PROC_INTR_HANDLE_ACKBAR
 			addi $a0, $zero, 0x01
 		CASE_DEFAULT:
-			addi $a0, $zero, $zero # It's an interrupt we don't handle, reset all?
+			add $a0, $zero, $zero # It's an interrupt we don't handle, reset all?
 	OTHER_EXCP:
 		# What do we want to do with exceptions?
 	END_IS_INTR:
@@ -320,6 +321,8 @@ __KMAIN:
 		xor $zero, $zero, $zero
 	END_FOO:
 	
+	sw $zero, TIMER_TRIGGER($zero)
+	
 	j WHILE_SCHED_SLICE
 	# Should not return out of main, but here for correctness:
 	jr $ra
@@ -327,7 +330,10 @@ __KMAIN:
 
 PROC_INTR_HANDLE_TIMER:
 	# Handle the timer
-	
+	push($t0)
+	addi $t0, $zero, 0x1
+	sw $t0, TIMER_TRIGGER($zero)
+	pop($t0)
 	jr $ra # K0 designated as return address for interrupt handlers
 
 
