@@ -58,6 +58,7 @@
 	TRAP0_SET:	.word 0x0000
 	AES_DONE:	.word 0x0000
 	TIMER_TRIGGER:	.word 0x0000
+	TEST_WORD:	.word 0x0000
 
 	.text # Starting off at 0x0000_0000
 __INIT:
@@ -310,20 +311,21 @@ PROC_RESET_INTR:
 	## Main Program Start
 __KMAIN:
 	WHILE_SCHED_SLICE:
-	addi $s0, $s0, 1 # Just a simple counter to while away the time until I can properly implement this
-	
+	addi $s0, $s0, 1 # Just a simple count by 5 to while away the time until I can properly implement this. Also tests memory manipulation.
+	addi $t1, $zero, 0x8
 	# This is an example of how to do a single compare conditional
-	addi $t1, $zero, 0xA
 	# If $s0 < $t1 then foo else bar
 	slt $t0, $s0, $t1
-	beq $t1, $zero, FOO # TODO: Must double test branch due to quirk with the processor
+	beq $t0, $zero, FOO
 	BAR:	# Else BAR
-		xor $zero, $zero, $zero
+		addi $s0, $s0, 0x1
 		j END_FOO
 	FOO:	# Then FOO
-		xor $zero, $zero, $zero
+		lw $t1, TEST_WORD($zero)
+		add $t1, $s0, $t1
+		sw $t1, TEST_WORD($zero)
+		add $s0, $zero, $zero
 	END_FOO:
-	
 	sw $zero, TIMER_TRIGGER($zero)
 	
 	j WHILE_SCHED_SLICE
