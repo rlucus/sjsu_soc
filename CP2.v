@@ -146,11 +146,11 @@ module CP2(
 		end // END rst
 		else begin
 			if(we_cpu)  reg_cpu[addr_cpu] = (addr_cpu==0)? {wrData_cpu[31:25], reg_cpu[0][24], wrData_cpu[23:0] } : wrData_cpu;
-		end
+/*		end
 	end
 
 
-    always @ (posedge clk) begin
+    always @ (posedge clk) begin*/
         case(state_dma)
             idle	  : state_dma = reg_cpu[0][30] ? dmaSet : idle; // WHILE go !=1  
             dmaSet    : begin
@@ -233,9 +233,9 @@ module CP2(
                         state_dma  = idle; 	                      end	    
             default    : state_dma = idle;        		            
         endcase // ENDCASE STATE_DMA
-    end 
+/*    end 
     
-    always @ (posedge clk) begin
+    always @ (posedge clk) begin*/
         case(state_aes)
             idle	  : state_aes = reg_cpu[0][30] ? loadKeyA : idle;
             loadKeyA  :begin
@@ -308,7 +308,7 @@ module CP2(
             default   : state_aes = idle;
         endcase // ENDCASE AES_STATE 
     end
-
+end
 endmodule
 
 

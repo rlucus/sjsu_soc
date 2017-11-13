@@ -21,7 +21,7 @@ module mips
     datapath    DP (.clk(clk), .rst(rst), .pc_src(pc_src), .jump(jump), .link(link), .jump_reg(jump_reg) ,.reg_dst(reg_dst), .we_reg(we_reg), 
         .alu_src(alu_src), .we_hi(we_hi), .we_lo(we_lo), .hi2reg(hi2reg), .lo2reg(lo2reg), .dm2reg(dm2reg), .alu_ctrl(alu_ctrl), 
         .instr(instr[25:0]), .rd_dm(rd_dm), .zero(zero), .pc_current(pc_current), .alu_out(alu_out), .wd_dm(wd_dm), .prossSel(prossSel), .weCP0(weCP0), .weCP2(weCP2),
-        .IV(IV), .EXL(EXL), .interrupt(INT), .hold(hold), .holdACK(holdACK), .NE(NE), .INTCTRL(INTCTRL), .we_dma(we_dma), .wrData_dma(wrData_dma), .addr_dma(addr_dma), .rdData_dma(rd_dm));
+        .IV(IV), .EXL(EXL), .interrupt(INT), .hold(hold), .holdACK(holdACK), .NE(NE), .INTCTRL(INTCTRL), .we_dma(we_dma), .wrData_dma(rd_dm), .addr_dma(addr_dma), .rdData_dma(wrData_dma));
     
     controlunit CU (.zero(zero), .op(instr[31:26]), .funct(instr[5:0]), .pc_src(pc_src), .jump(jump), 
         .link(link), .jump_reg(jump_reg) ,.reg_dst(reg_dst), .we_reg(we_reg), .alu_src(alu_src), .we_hi(we_hi), .we_lo(we_lo), 
@@ -29,25 +29,25 @@ module mips
         .IV(IV), .EXL(EXL), .hold(hold), .holdACK(holdACK), .NE(NE), .INTCTRL(INTCTRL), .pc_current(pc_current));
      
      //adding logic for DMA
-     mux2    #(32) dmem_addr_mux  (.sel(holdACK), .a(alu_out), .b(addr_dma), .y(dmem_addr));
-     mux2    #(32) dmem_out_mux  (.sel(holdACK), .a(wd_dm), .b(wrData_dma), .y(dmem_out));
-     mux2    #(1) dmem_we_mux  (.sel(holdACK), .a(we_dm), .b(we_dma), .y(dmem_we));   
+     mux2    #(32) dmem_addr_mux (.sel(holdACK), .a(alu_out), .b(addr_dma),   .y(dmem_addr));
+     mux2    #(32) dmem_out_mux  (.sel(holdACK), .a(wd_dm),   .b(wrData_dma), .y(dmem_out));
+     mux2    #(1) dmem_we_mux    (.sel(holdACK), .a(we_dm),   .b(we_dma),     .y(dmem_we));   
      
 endmodule
 
 module datapath
 (input         clk, rst, pc_src, link, jump_reg, reg_dst, we_reg, alu_src, we_hi, we_lo, hi2reg, lo2reg, dm2reg, weCP0, weCP2, holdACK, INTCTRL,
- input [1:0] jump, prossSel,
- input  [3:0]  alu_ctrl,
- input [3:0] interrupt,
+ input  [1 :0] jump, prossSel,
+ input  [3 :0] alu_ctrl,
+ input  [3 :0] interrupt,
  input  [25:0] instr, 
  input  [31:0] rd_dm, wrData_dma,
  output        zero, NE, IV, EXL, hold, we_dma,
  output [31:0] pc_current, alu_out, wd_dm, addr_dma, rdData_dma);
-    wire trap, CP2rdy;
-    wire [4:0]  wa_rf, jal_rf;
-    wire [31:0] CPALU, pc_pre, pc_next, pc_plus4, jra, jta, sext_imm, ba, bta, alu_pa, alu_pb, hi_dat, lo_dat, hi_res, lo_res, wd_rf, wd_rf_res,CPzerod, CPtwod, pc_adjust;
-    wire [63:0] product;
+   wire        trap, CP2rdy;
+   wire [4 :0] wa_rf, jal_rf;
+   wire [31:0] CPALU, pc_pre, pc_next, pc_plus4, jra, jta, sext_imm, ba, bta, alu_pa, alu_pb, hi_dat, lo_dat, hi_res, lo_res, wd_rf, wd_rf_res,CPzerod, CPtwod, pc_adjust;
+   wire [63:0] product;
     assign jta = {pc_plus4[31:28], instr[25:0], 2'b00};
     assign ba  = {sext_imm[29:0], 2'b00};
     // Next PC Logic
