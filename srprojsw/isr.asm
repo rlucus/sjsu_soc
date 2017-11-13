@@ -70,6 +70,9 @@ __INIT:
 	mtc0 $t1, $12
 	mtc0 $zero, $13 # N2: Init the other registers to zero
 	mtc0 $zero, $14
+	addi $sp, $zero, 0x3F
+	sll $sp, $sp, 0x8
+	addi $sp, $sp, 0xFC
 	## Start main, then halt if we somehow return out
 	jal __KMAIN
 	
@@ -77,9 +80,9 @@ __INIT:
 	
 		#nop # N(whatever): Padding instructions to align the ISR in the program to address 0x180
 		#nop # Note: Remove exactly one instruction for every instruction added above this comment!
-		nop
-		nop
-		nop
+		#nop
+		#nop
+		#nop
 		nop
 		nop
 		nop
