@@ -311,7 +311,7 @@ PROC_RESET_INTR:
 	## Main Program Start
 __KMAIN:
 	WHILE_SCHED_SLICE:
-	addi $s0, $s0, 1 # Just a simple count by 5 to while away the time until I can properly implement this. Also tests memory manipulation.
+	addi $s0, $zero, 1 # Just a simple count by 5 to while away the time until I can properly implement this. Also tests memory manipulation.
 	addi $t1, $zero, 0x8
 	# This is an example of how to do a single compare conditional
 	# If $s0 < $t1 then foo else bar
