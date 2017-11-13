@@ -7,9 +7,9 @@ module mipscore_tb();
 
     mips_top u1 (.clk(clk), .rst(rst), 
         .pc_current(pc_current), .instr(instr), 
-        .alu_out(alu_out), .wd_dm(wd_dm), .rd_dm(rd_dm), .INT(INT[4:0]));
+        .dmem_addr(alu_out), .dmem_out(wd_dm), .rd_dm(rd_dm), .INT(INT[3:0]));
     initial begin
-        INT = 5'b00000;
+        INT = 4'h0;
         rst = 0;
         bounce();
         rst = 1;
@@ -24,7 +24,7 @@ module mipscore_tb();
             end
         //$stop;
         
-        INT = 5'b11111;
+        INT = 4'b1111;
         #5;
         //bounce();
         #5;
