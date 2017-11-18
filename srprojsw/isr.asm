@@ -62,6 +62,37 @@
 
 	.text # Starting off at 0x0000_0000
 __INIT:
+	add $at, $zero, $zero
+	add $v0, $zero, $zero
+	add $v1, $zero, $zero
+	add $a0, $zero, $zero
+	add $a1, $zero, $zero
+	add $a2, $zero, $zero
+	add $a3, $zero, $zero
+	add $t0, $zero, $zero
+	add $t1, $zero, $zero
+	add $t2, $zero, $zero
+	add $t3, $zero, $zero
+	add $t4, $zero, $zero
+	add $t5, $zero, $zero
+	add $t6, $zero, $zero
+	add $t7, $zero, $zero
+	add $s0, $zero, $zero
+	add $s1, $zero, $zero
+	add $s2, $zero, $zero
+	add $s3, $zero, $zero
+	add $s4, $zero, $zero
+	add $s5, $zero, $zero
+	add $s6, $zero, $zero
+	add $s7, $zero, $zero
+	add $t8, $zero, $zero
+	add $t9, $zero, $zero
+	add $k0, $zero, $zero
+	add $k1, $zero, $zero
+	add $gp, $zero, $zero
+	add $sp, $zero, $zero
+	add $fp, $zero, $zero
+	add $ra, $zero, $zero
 	addi $t0, $zero 0x1F3A # N7: memory I/O test instructions
 	sw $t0, TEST_WORD($zero)
 	add $t1, $zero, $zero
@@ -99,37 +130,37 @@ MEMIO_TEST_OK:
 		#nop
 		#nop
 		#nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
 		nop
 		nop
 		nop
