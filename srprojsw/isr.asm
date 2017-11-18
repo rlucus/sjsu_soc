@@ -241,7 +241,7 @@ __X180_HANDLER: ## Regs clobbered: K0
 	beq $k1, $zero, IS_INTR # Would do a bne here, but not available in the arch, hence this skip-step if
 	j OTHER_EXCP
 	IS_INTR:
-		sll $k0, $k0, 0x8 # N3: Look at the interrupt flags
+		srl $k0, $k0, 0x8 # N3: Look at the interrupt flags
 		addi $k1, $zero, 0xFF
 		and $k0, $k1, $k0
 		
