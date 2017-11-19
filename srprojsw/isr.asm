@@ -376,9 +376,9 @@ __KMAIN:
 	addi $t0, $zero, 0xFF
 	mtc0 $t0, $22
 	
-	WHILE_SCHED_SLICE:
 	addi $s0, $zero, 1 # Just a simple count by 5 to while away the time until I can properly implement this. Also tests memory manipulation.
 	addi $t1, $zero, 0x8
+WHILE_SCHED_SLICE:
 	# This is an example of how to do a single compare conditional
 	# If $s0 < $t1 then foo else bar
 	slt $t0, $s0, $t1
