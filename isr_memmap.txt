@@ -1,0 +1,16 @@
+.eqv	ISR00	0x7ee0
+.eqv	ISR01	0x7ee1
+.eqv	ISR02	0x7ee2
+.eqv	ISR03	0x7ee3
+.eqv	ISR04	0x7ee4
+.eqv	ISR05	0x7ee5
+.eqv	ISR06	0x7ee6
+.eqv	ISR07	0x7ee7
+.eqv	ISR08	0x7ee8
+.eqv	ISR09	0x7ee9
+.eqv	ISR10	0x7eeA
+.eqv	ISR11	0x7eeB
+.eqv	ISR12	0x7eeC
+.eqv	ISR13	0x7eeD
+.eqv	ISR14	0x7eee
+.eqv	ISR15	0x7eeF

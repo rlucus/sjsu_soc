@@ -236,10 +236,10 @@ MEMIO_TEST_OK:
 #####################################################
 
 __X180_HANDLER: ## Regs clobbered: K0
-	sw $ra, ISR00 # N3: store the registers that I'm going to use to the stack
-	sw $k0, ISR01
-	sw $k1, ISR02
-	sw $a0, ISR03
+	sw $ra, ISR00 # N5: store the registers that I'm going to use to the stack
+	sw $k1, ISR01
+	sw $a0, ISR02
+	sw $t0, ISR03
 	
 	sw $ra, 0x7FEF
 	
@@ -317,11 +317,11 @@ __X180_HANDLER: ## Regs clobbered: K0
 	END_IS_INTR:
 	
 	jal PROC_RESET_INTR # Reset interrupt $a0
-		
-	lw $a0, 0x0($sp)
-	lw $k1, 0x4($sp)
-	lw $ra, 0x8($sp)
-	addi $sp, $sp, 0xC
+
+	lw $ra, ISR00 # N5: store the registers that I'm going to use to the stack
+	lw $k1, ISR01
+	lw $a0, ISR02
+	lw $t0, ISR03
 	
 	mfc0 $k0, $14 # N2: return to whence we've interrupted
 	jr $k0 # End ISR
