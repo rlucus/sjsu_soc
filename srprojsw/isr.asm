@@ -53,6 +53,23 @@
 	addi $sp, $sp, 0x4
 	.end_macro
 	
+	.eqv    ISR00   0x7ee0
+	.eqv    ISR01   0x7ee1
+	.eqv    ISR02   0x7ee2
+	.eqv    ISR03   0x7ee3
+	.eqv    ISR04   0x7ee4
+	.eqv    ISR05   0x7ee5
+	.eqv    ISR06   0x7ee6
+	.eqv    ISR07   0x7ee7
+	.eqv    ISR08   0x7ee8
+	.eqv    ISR09   0x7ee9
+	.eqv    ISR10   0x7eeA
+	.eqv    ISR11   0x7eeB
+	.eqv    ISR12   0x7eeC
+	.eqv    ISR13   0x7eeD
+	.eqv    ISR14   0x7eee
+	.eqv    ISR15   0x7eeF
+	
 	.data
 	EXCP_CODE:	.word 0x0000
 	TRAP0_SET:	.word 0x0000
@@ -62,7 +79,7 @@
 
 	.text # Starting off at 0x0000_0000
 __INIT:
-	add $at, $zero, $zero
+	add $at, $zero, $zero # N32: Initialize all the registers to zero (solves weird bugs that came up in the hardware simulator)
 	add $v0, $zero, $zero
 	add $v1, $zero, $zero
 	add $a0, $zero, $zero
@@ -219,10 +236,10 @@ MEMIO_TEST_OK:
 #####################################################
 
 __X180_HANDLER: ## Regs clobbered: K0
-	addi $sp, $sp, -0xC # N4: store the registers that I'm going to use to the stack
-	sw $ra, 0x8($sp)
-	sw $k1, 0x4($sp)
-	sw $a0, 0x0($sp)
+	sw $ra, ISR00 # N3: store the registers that I'm going to use to the stack
+	sw $k0, ISR01
+	sw $k1, ISR02
+	sw $a0, ISR03
 	
 	sw $ra, 0x7FEF
 	
@@ -267,7 +284,7 @@ __X180_HANDLER: ## Regs clobbered: K0
 		
 		addi $k1, $zero, 0x04
 		and $k1, $k0, $k1
-		beq $k1, $zero, CASE_HWINTR0
+		beq $k1, $zero, CASE_HWINTR0 # TODO: Compare with zero incorrect, fix this
 		
 		#addi $k1, $zero, 0x02
 		#and $k1, $k0, $k1
