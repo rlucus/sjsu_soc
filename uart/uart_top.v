@@ -6,8 +6,10 @@ wire [31:0] toUart;
 wire busy;
 wire Empty_out;
 wire pNextWordToRead;
+reg [1:0] counter;
+wire [7:0] data;
 
-aFifo uart_fifo(.RClk(RClk), .WClk(clk), .Clear_in(reset), .Data_in(dataIn), .Data_out(toUart), .WriteEn_in(we), .ReadEn_in((!busy) && (!Empty_out)), .Empty_out(Empty_out), .pNextWordToRead(pNextWordToRead));
+aFifo uart_fifo(.RClk(RClk), .WClk(clk), .Clear_in(reset), .Data_in(dataIn), .Data_out(toUart), .WriteEn_in(we), .ReadEn_in((counter == 2'b11) && (!Empty_out)), .Empty_out(Empty_out), .pNextWordToRead(pNextWordToRead));
 
 //UART_TX_CTRL UART1 (.SEND((busy) && (!Empty_out)), .DATA(toUart[7:0]), .CLK(clk), .READY(busy), .UART_TX(serial));
 
@@ -21,24 +23,43 @@ entity UART_TX_CTRL is
 
 
 uart UART1 (.clk(clk), .reset_n(~reset), 
-    .tx_ena((~busy) & (~Empty_out) & (pNextWordToRead >= 1'b0)), .tx_data(toUart[15:8]), 
-    .rx(), .rx_busy(), 
+    .tx_ena((~busy) & (~Empty_out) & (pNextWordToRead >= 1'b0)), .tx_data(data), 
+    .rx(1'b1), .rx_busy(), 
     .rx_error(), .rx_data(), 
     .tx_busy(busy), .tx(serial));
+
+shifter SHIFT(.selector(counter), .word(toUart), .byte(data));
     
+always @ (posedge clk, posedge reset)
+begin
+    if(reset)
+        begin
+        counter = 0;
+        end
+    else if(~Empty_out && ~busy) begin
+        counter = counter + 1;
+    end
+end    
     
-    
-    
-    
-    
-    
-    
+   
 endmodule
+
+
+module shifter(input /*shift,*/ [1:0] selector, input [31:0] word, output [7:0] byte);
+
+    //wire [31:0] temp;
+    //reg [1:0] counter;
+    mux4 #(8) select (.a(word[31:24]), .b(word[23:16]), .c(word[15:8]), .d(word[7:0]), .sel(selector), .y(byte));
+
+
+endmodule
+
+
 
 
 module aFifo
   #(parameter    DATA_WIDTH    = 32,
-                 ADDRESS_WIDTH = 4,
+                 ADDRESS_WIDTH = 6,
                  FIFO_DEPTH    = (1 << ADDRESS_WIDTH))
      //Reading port
     (//output reg  [DATA_WIDTH-1:0]        Data_out,
@@ -143,7 +164,7 @@ endmodule
 
 
 module GrayCounter
-   #(parameter   COUNTER_WIDTH = 4)
+   #(parameter   COUNTER_WIDTH = 6)
    
     (output reg  [COUNTER_WIDTH-1:0]    GrayCount_out,  //'Gray' code count output.
     
