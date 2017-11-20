@@ -101,6 +101,7 @@ MEMIO_TEST_OK:
 	## Device Initialization
 	addi $t1, $zero, 0x5000 # N3: Enable interrupts, CP0, and CP2
 	append_intr_flag_mask($t1)
+	mtc0 $zero, $12 # BUG FIX: CP0/R12 not zeroing correctly
 	mtc0 $t1, $12
 	mtc0 $zero, $13 # N2: Init the other registers to zero
 	mtc0 $zero, $14
@@ -121,7 +122,7 @@ MEMIO_TEST_OK:
 	
 	j __HALT
 	
-		nop # N(whatever): Padding instructions to align the ISR in the program to address 0x180
+		#nop # N(whatever): Padding instructions to align the ISR in the program to address 0x180
 		nop # Note: Remove exactly one instruction for every instruction added above this comment!
 		nop
 		nop
