@@ -1,13 +1,12 @@
 ##########################################################
-# TEST ISR
+# TEST KERNEL AND ISR
 # 
 # Author: Kai Wetlesen
 # 
-# Wires up an interrupt service routine which simply grabs
-# the exception code or the interrupt flag set, then dumps
-# that value into memory with an indicator bit. The 
-# indicator will determine whether the interrupt came from
-# an exception (internal) or a wire (external).
+# Wires up an interrupt service routine which classifies
+# the interrupt then invokes the corresponding service
+# routine. Has a small spin loop which generates some 
+# observable behavior within the CPU
 #
 # Note: This should compile straight down to bytecode 
 # representing these precise instructions. No instructions
@@ -55,29 +54,12 @@
 	
 	.eqv	NTICKS	0x400 # Number of ticks until the timer interrupt fires
 	
-	.eqv    ISR00   0x7ee0
-	.eqv    ISR01   0x7ee1
-	.eqv    ISR02   0x7ee2
-	.eqv    ISR03   0x7ee3
-	.eqv    ISR04   0x7ee4
-	.eqv    ISR05   0x7ee5
-	.eqv    ISR06   0x7ee6
-	.eqv    ISR07   0x7ee7
-	.eqv    ISR08   0x7ee8
-	.eqv    ISR09   0x7ee9
-	.eqv    ISR10   0x7eeA
-	.eqv    ISR11   0x7eeB
-	.eqv    ISR12   0x7eeC
-	.eqv    ISR13   0x7eeD
-	.eqv    ISR14   0x7eee
-	.eqv    ISR15   0x7eeF
+	## Data Section
+	# Note: Uncomment the include for the assembler file that 
+	# corresponds to the environment you're running in.
+	.include "mmap_hw.asm" # Memorpy map for the hardware
+	#.include "mmap_sim.asm" # Memory map for MARS
 	
-	.data
-	EXCP_CODE:	.word 0x0000
-	TRAP0_SET:	.word 0x0000
-	AES_DONE:	.word 0x0000
-	TEST_WORD:	.word 0x0000
-
 	.text # Starting off at 0x0000_0000
 __INIT:
 	add $at, $zero, $zero # N29: Initialize all the registers to zero (solves weird bugs that came up in the hardware simulator)
@@ -109,9 +91,9 @@ __INIT:
 	add $fp, $zero, $zero
 	add $ra, $zero, $zero
 	addi $t0, $zero 0x1F3A # N7: memory I/O test instructions
-	sw $t0, TEST_WORD($zero)
+	sw $t0, ISR00($zero)
 	add $t1, $zero, $zero
-	lw $t1, TEST_WORD($zero)
+	lw $t1, ISR00($zero)
 	slt $t2, $t0, $t1
 	beq $t2, $zero, MEMIO_TEST_OK
 	j __HALT
@@ -139,52 +121,8 @@ MEMIO_TEST_OK:
 	
 	j __HALT
 	
-		#nop # N(whatever): Padding instructions to align the ISR in the program to address 0x180
-		#nop # Note: Remove exactly one instruction for every instruction added above this comment!
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		nop
-		nop
+		nop # N(whatever): Padding instructions to align the ISR in the program to address 0x180
+		nop # Note: Remove exactly one instruction for every instruction added above this comment!
 		nop
 		nop
 		nop
@@ -240,12 +178,12 @@ MEMIO_TEST_OK:
 #####################################################
 
 __X180_HANDLER: ## Regs clobbered: K0
-	sw $ra, ISR00 # N5: store the registers that I'm going to use to the stack
-	sw $k1, ISR01
-	sw $a0, ISR02
-	sw $t0, ISR03
+	sw $ra, ISR00($zero) # N5: store the registers that I'm going to use to the stack
+	sw $k1, ISR01($zero)
+	sw $a0, ISR02($zero)
+	sw $t0, ISR03($zero)
 	
-	sw $ra, 0x7FEF
+	sw $ra, 0x7FEF($zero)
 	
 	mfc0 $k0, $12 # Turn off the master interrupt flag
 	srl $k0, $k0, 0x1
@@ -266,66 +204,72 @@ __X180_HANDLER: ## Regs clobbered: K0
 		addi $k1, $zero, 0xFF
 		and $k0, $k1, $k0
 		
-		addi $k1, $zero, 0x80 # N3: Case HWINTR5 (also for next few blocks for different interrupts)
+		addi $k1, $zero, 0x80 # N4: Case HWINTR5 (also for next few blocks for different interrupts)
+		add $a0, $zero, $k1
 		and $k1, $k0, $k1
-		beq $k1, $zero, CASE_HWINTR5
+		beq $k1, $a0, CASE_HWINTR5
 		
-		#addi $k1, $zero, 0x40
-		#and $k1, $k0, $k1
-		#beq $k1, $zero, CASE_HWINTR4
+		addi $k1, $zero, 0x40
+		add $a0, $zero, $k1
+		and $k1, $k0, $k1
+		beq $k1, $a0, CASE_HWINTR4
 		
-		#addi $k1, $zero, 0x20
-		#and $k1, $k0, $k1
-		#beq $k1, $zero, CASE_HWINTR3
+		addi $k1, $zero, 0x20
+		add $a0, $zero, $k1
+		and $k1, $k0, $k1
+		beq $k1, $a0, CASE_HWINTR3
 		
-		#addi $k1, $zero, 0x10
-		#and $k1, $k0, $k1
-		#beq $k1, $zero, CASE_HWINTR2
+		addi $k1, $zero, 0x10
+		add $a0, $zero, $k1
+		and $k1, $k0, $k1
+		beq $k1, $a0, CASE_HWINTR2
 		
-		#addi $k1, $zero, 0x08
-		#and $k1, $k0, $k1
-		#beq $k1, $zero, CASE_HWINTR1
+		addi $k1, $zero, 0x08
+		add $a0, $zero, $k1
+		and $k1, $k0, $k1
+		beq $k1, $a0, CASE_HWINTR1
 		
 		addi $k1, $zero, 0x04
+		add $a0, $zero, $k1
 		and $k1, $k0, $k1
-		beq $k1, $zero, CASE_HWINTR0 # TODO: Compare with zero incorrect, fix this
+		beq $k1, $a0, CASE_HWINTR0 # TODO: Compare with zero incorrect, fix this
 		
-		#addi $k1, $zero, 0x02
-		#and $k1, $k0, $k1
-		#beq $k1, $zero, CASE_SWINTR1
+		addi $k1, $zero, 0x02
+		add $a0, $zero, $k1
+		and $k1, $k0, $k1
+		beq $k1, $a0, CASE_SWINTR1
 		
-		#addi $k1, $zero, 0x01
-		#and $k1, $k0, $k1
-		#beq $k1, $zero, CASE_SWINTR0
+		addi $k1, $zero, 0x01
+		add $a0, $zero, $k1
+		and $k1, $k0, $k1
+		beq $k1, $a0, CASE_SWINTR0
 		
-		j CASE_DEFAULT
+		j END_IS_INTR
 		
 		CASE_HWINTR5:
 			jal PROC_INTR_HANDLE_TIMER
-			addi $a0, $zero, 0x80
-		#CASE_HWINTR4:
-		#CASE_HWINTR3:
-		#CASE_HWINTR2:
-		#CASE_HWINTR1:
+			j END_IS_INTR
+		CASE_HWINTR4:
+		CASE_HWINTR3:
+		CASE_HWINTR2:
+		CASE_HWINTR1:
+			j END_IS_INTR # Hardware interrupts 1 through 4 ignored, simply reset them
 		CASE_HWINTR0:
 			jal PROC_INTR_HANDLE_AES
-			addi $a0, $zero, 0x04
-		#CASE_SWINTR1:
+			j END_IS_INTR
+		CASE_SWINTR1:
 		CASE_SWINTR0:
-			jal PROC_INTR_HANDLE_ACKBAR
-			addi $a0, $zero, 0x01
-		CASE_DEFAULT:
-			add $a0, $zero, $zero # It's an interrupt we don't handle, reset all?
-	OTHER_EXCP:
-		# What do we want to do with exceptions?
+			jal PROC_INTR_HANDLE_ACKBAR # Both traps handled by Adm. Ackbar
+			j END_IS_INTR
 	END_IS_INTR:
-	
-	jal PROC_RESET_INTR # Reset interrupt $a0
+		jal PROC_RESET_INTR # Reset interrupt $a0
+	OTHER_EXCP:
+		# What do we want to do with other exceptions?
 
-	lw $ra, ISR00 # N5: store the registers that I'm going to use to the stack
-	lw $k1, ISR01
-	lw $a0, ISR02
-	lw $t0, ISR03
+	lw $ra, ISR00($zero) # N5: store the registers that I'm going to use to the stack
+	lw $k1, ISR01($zero)
+	lw $a0, ISR02($zero)
+	lw $t0, ISR03($zero)
 	
 	mfc0 $k0, $14 # N2: return to whence we've interrupted
 	jr $k0 # End ISR
@@ -412,7 +356,7 @@ PROC_INTR_HANDLE_ACKBAR:
 	# It's a trap!
 	push($t0)
 	addi $t0, $zero, 0x1 # Signal that trap was received
-	sw $t0, TRAP0_SET($zero)
+	sw $t0, TRAP_SET($zero)
 	pop($t0)
 	jr $ra
 
