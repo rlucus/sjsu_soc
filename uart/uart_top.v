@@ -6,10 +6,10 @@ wire [31:0] toUart;
 wire busy;
 wire Empty_out;
 wire pNextWordToRead;
-reg [1:0] counter;
+reg [2:0] counter;
 wire [7:0] data;
 
-aFifo uart_fifo(.RClk(RClk), .WClk(clk), .Clear_in(reset), .Data_in(dataIn), .Data_out(toUart), .WriteEn_in(we), .ReadEn_in((counter == 2'b11) && (!Empty_out)), .Empty_out(Empty_out), .pNextWordToRead(pNextWordToRead));
+aFifo uart_fifo(.RClk(RClk), .WClk(clk), .Clear_in(reset), .Data_in(dataIn), .Data_out(toUart), .WriteEn_in(we), .ReadEn_in((counter >= 3'b100) && (!Empty_out)), .Empty_out(Empty_out), .pNextWordToRead(pNextWordToRead));
 
 //UART_TX_CTRL UART1 (.SEND((busy) && (!Empty_out)), .DATA(toUart[7:0]), .CLK(clk), .READY(busy), .UART_TX(serial));
 
@@ -36,9 +36,14 @@ begin
         begin
         counter = 0;
         end
-    else if(~Empty_out && ~busy) begin
+    else if(counter >= 3'b100) begin
+                    counter = 0;
+            end
+    else if(!Empty_out && !busy) begin
         counter = counter + 1;
     end
+
+    
 end    
     
    
