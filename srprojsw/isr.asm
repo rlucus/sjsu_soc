@@ -422,6 +422,7 @@ PROC_INTR_HANDLE_AES:
 	push($t0)
 	addi $t0, $zero, 0x1 # Signal that AES is now complete
 	sw $t0, AES_DONE($zero)
+	nop
 	pop($t0)
 	jr $ra
 
