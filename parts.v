@@ -222,26 +222,41 @@ endmodule
 
 `timescale 1ns / 1ps
 
-module clk_gen(input clk450MHz, input rst, output reg clk_sec);
+module clk_gen(input clk450MHz, input rst, output reg clk_sec, output reg clk_5KHz, output reg clk_1MHz);
 
-integer count, count1;
+integer count, count1, count2;
 
 always@(posedge clk450MHz)
     begin
         if(rst)
         begin
             count = 0;
+            count1 = 0;
             clk_sec = 0;
+            clk_5KHz =0;
+            count2 = 0;
+            clk_1MHz = 0;
         end
         else
         begin
-            //if(count == 50000000) /* 50e6 x 10ns = 1/2sec, toggle twice for 1sec */
-            if(count == 604) /* 50e6 x 10ns = 1/2sec, toggle twice for 1sec */
+            if(count == 50000000) /* 50e6 x 10ns = 1/2sec, toggle twice for 1sec */
             begin
             clk_sec = ~clk_sec;
             count = 0;
             end
+            if(count1 == 10000)
+            begin
+            clk_5KHz = ~clk_5KHz;
+            count1 = 0;
+            end
+            if(count2 == 100)
+            begin
+            clk_1MHz = ~clk_1MHz;
+            count2 = 0;
+            end
             count = count + 1;
+            count1 = count1 + 1;
+            count2 = count2 + 1;
         end
     end
 endmodule // end clk_gen

@@ -7,7 +7,7 @@ module mipscore_tb();
 
     mips_top u1 (.clk(clk), .rst(rst), 
         .pc_current(pc_current), .instr(instr), 
-        .dmem_addr(alu_out), .dmem_out(wd_dm), .rd_dm(rd_dm), .INT(INT[3:0]));
+        .dmem_addr(alu_out), .dmem_out(wd_dm), .rd_dm(rd_dm), .INT(INT[3:0]), .serialClk(clk));
     initial begin
         INT = 4'h0;
         rst = 0;
@@ -18,7 +18,8 @@ module mipscore_tb();
         
         //while(pc_current != 32'h0000005C)
         //repeat (150)
-        repeat (600)    
+        //repeat (600)
+        repeat (100000)    
             begin
             bounce();
             end

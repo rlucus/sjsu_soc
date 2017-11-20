@@ -16,7 +16,7 @@ module mips
     wire [3:0] alu_ctrl;
     wire [4:0] cpop;
     
-    wire [31:0] alu_out, wd_dm, rd_dm, wrData_dma, addr_dma;
+    wire [31:0] alu_out, wd_dm, wrData_dma, addr_dma;
     
     datapath    DP (.clk(clk), .rst(rst), .pc_src(pc_src), .jump(jump), .link(link), .jump_reg(jump_reg) ,.reg_dst(reg_dst), .we_reg(we_reg), 
         .alu_src(alu_src), .we_hi(we_hi), .we_lo(we_lo), .hi2reg(hi2reg), .lo2reg(lo2reg), .dm2reg(dm2reg), .alu_ctrl(alu_ctrl), 

@@ -1,9 +1,10 @@
 # Based on Digilent's Nexys Video reference XDC,
 # with extra pins not used in the labs removed.
 
-# Clock signal (450 MHz)
+# Clock signal (100 MHz)
 set_property -dict { PACKAGE_PIN R4    IOSTANDARD LVCMOS33 } [get_ports { clk450MHz }]; #IO_L13P_T2_MRCC_34 Sch=sysclk
 create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports {clk450MHz}];
+
 
 #reset for stuff
 set_property -dict { PACKAGE_PIN B22  IOSTANDARD LVCMOS33} [get_ports { rst }]; #IO_L20N_T3_16 Sch=btnc
@@ -20,6 +21,10 @@ set_property -dict { PACKAGE_PIN G22  IOSTANDARD LVCMOS33} [get_ports { INT[3] }
 
 #test unit
 set_property -dict { PACKAGE_PIN T14   IOSTANDARD LVCMOS25 } [get_ports { pc_current }]; #IO_L15P_T2_DQS_13 Sch=led[0]
+
+## UART
+set_property -dict { PACKAGE_PIN AA19  IOSTANDARD LVCMOS33 } [get_ports { uart_rx_out }]; #IO_L15P_T2_DQS_RDWR_B_14 Sch=uart_rx_out
+#set_property -dict { PACKAGE_PIN V18   IOSTANDARD LVCMOS33 } [get_ports { uart_tx_in }]; #IO_L14P_T2_SRCC_14 Sch=uart_tx_in
 
 # Slide switches
 #set_property -dict { PACKAGE_PIN J15   IOSTANDARD LVCMOS33 } [get_ports { switches[0] }]; #IO_L24N_T3_RS0_15 Sch=sw[0]

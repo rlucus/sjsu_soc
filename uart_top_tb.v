@@ -6,17 +6,22 @@ reg clk, reset, we;
 reg [31:0] address, dataIn;
 wire serial; 
 
-uart_top DUT1(.clk(clk), .reset(reset), .we(we), .dataIn(dataIn), .address(address), .serial(serial));
+uart_top DUT1(.RClk(clk), .clk(clk), .reset(reset), .we(we), .dataIn(dataIn), .address(address), .serial(serial));
 
 initial begin
 
-    clk = 0;
     reset = 0;
+    clk = 0;
     we = 0;
-    address = 32'h0000_0000;
-    dataIn = 32'h12_34_56_78;
     bounce();
     reset = 1;
+    bounce();
+    reset = 0;
+    bounce();
+    address = 32'h0000_0000;
+    dataIn = 32'hAA_AA_AA_AA;
+    bounce();
+    reset = 0;
     bounce();
     reset = 0;
     bounce();

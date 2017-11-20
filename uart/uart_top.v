@@ -1,17 +1,27 @@
 `timescale 1ns/1ps
-module uart_top(input clk, input reset, input we, input [31:0] dataIn, address, output serial);
+module uart_top(input RClk, input clk, input reset, input we, input [31:0] dataIn, address, output serial);
 
-wire write = ((we == 1'b1) && (address == 32'hFFFF_FFFF)) ? 1:0;
+wire write = ((we == 1'b1) && (address == 32'h0000_7EEF)) ? 1:0;
 wire [31:0] toUart;
 wire busy;
 wire Empty_out;
+wire pNextWordToRead;
 
-aFifo uart_fifo(.RClk(clk), .WClk(clk), .Clear_in(reset), .Data_in(dataIn), .Data_out(toUart), .WriteEn_in(write), .ReadEn_in((!busy) && (!Empty_out)), .Empty_out(Empty_out));
+aFifo uart_fifo(.RClk(RClk), .WClk(clk), .Clear_in(reset), .Data_in(dataIn), .Data_out(toUart), .WriteEn_in(we), .ReadEn_in((!busy) && (!Empty_out)), .Empty_out(Empty_out), .pNextWordToRead(pNextWordToRead));
+
+//UART_TX_CTRL UART1 (.SEND((busy) && (!Empty_out)), .DATA(toUart[7:0]), .CLK(clk), .READY(busy), .UART_TX(serial));
+
+/*
+entity UART_TX_CTRL is
+    Port ( SEND : in  STD_LOGIC;
+           DATA : in  STD_LOGIC_VECTOR (7 downto 0);
+           CLK : in  STD_LOGIC;
+           READY : out  STD_LOGIC;
+           UART_TX : out  STD_LOGIC);*/
 
 
-
-uart UART1 (.clk(~clk), .reset_n(~reset), 
-    .tx_ena((!busy) && (!Empty_out)), .tx_data(toUart), 
+uart UART1 (.clk(clk), .reset_n(~reset), 
+    .tx_ena((~busy) & (~Empty_out) & (pNextWordToRead >= 1'b0)), .tx_data(toUart[15:8]), 
     .rx(), .rx_busy(), 
     .rx_error(), .rx_data(), 
     .tx_busy(busy), .tx(serial));
@@ -32,7 +42,8 @@ module aFifo
                  FIFO_DEPTH    = (1 << ADDRESS_WIDTH))
      //Reading port
     (//output reg  [DATA_WIDTH-1:0]        Data_out,
-     output wire  [DATA_WIDTH-1:0]        Data_out, 
+     output wire  [DATA_WIDTH-1:0]        Data_out,
+     output wire  [ADDRESS_WIDTH-1:0]    pNextWordToRead, 
      output reg                          Empty_out,
      input wire                          ReadEn_in,
      input wire                          RClk,        
@@ -46,7 +57,7 @@ module aFifo
 
     /////Internal connections & variables//////
     reg   [DATA_WIDTH-1:0]              Mem [FIFO_DEPTH-1:0];
-    wire  [ADDRESS_WIDTH-1:0]           pNextWordToWrite, pNextWordToRead;
+    wire  [ADDRESS_WIDTH-1:0]           pNextWordToWrite;
     wire                                EqualAddresses;
     wire                                NextWriteAddressEn, NextReadAddressEn;
     wire                                Set_Status, Rst_Status;
@@ -60,7 +71,7 @@ module aFifo
     //always @ (posedge RClk)
     //    if (ReadEn_in & !Empty_out)
     //        Data_out <= Mem[pNextWordToRead];
-    assign Data_out = (!Empty_out) ? Mem[pNextWordToRead] : 0;       
+    assign Data_out = (!Empty_out) ? Mem[pNextWordToRead] : Mem[pNextWordToRead];       
             
     //'Data_in' logic:
     always @ (posedge WClk)
