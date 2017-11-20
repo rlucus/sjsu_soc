@@ -53,6 +53,8 @@
 	addi $sp, $sp, 0x4
 	.end_macro
 	
+	.eqv	NTICKS	0x400 # Number of ticks until the timer interrupt fires
+	
 	.eqv    ISR00   0x7ee0
 	.eqv    ISR01   0x7ee1
 	.eqv    ISR02   0x7ee2
@@ -74,21 +76,17 @@
 	EXCP_CODE:	.word 0x0000
 	TRAP0_SET:	.word 0x0000
 	AES_DONE:	.word 0x0000
-	TIMER_TRIGGER:	.word 0x0000
 	TEST_WORD:	.word 0x0000
 
 	.text # Starting off at 0x0000_0000
 __INIT:
-	add $at, $zero, $zero # N32: Initialize all the registers to zero (solves weird bugs that came up in the hardware simulator)
-	add $v0, $zero, $zero
+	add $at, $zero, $zero # N29: Initialize all the registers to zero (solves weird bugs that came up in the hardware simulator)
+	add $v0, $zero, $zero # Note: T0, T1, and T2 initialized after memory test routine because they're used in the test
 	add $v1, $zero, $zero
 	add $a0, $zero, $zero
 	add $a1, $zero, $zero
 	add $a2, $zero, $zero
 	add $a3, $zero, $zero
-	add $t0, $zero, $zero
-	add $t1, $zero, $zero
-	add $t2, $zero, $zero
 	add $t3, $zero, $zero
 	add $t4, $zero, $zero
 	add $t5, $zero, $zero
@@ -118,18 +116,24 @@ __INIT:
 	beq $t2, $zero, MEMIO_TEST_OK
 	j __HALT
 MEMIO_TEST_OK:
-	# Two zero test instructions
-	mtc0 $zero, $12
-	mtc0 $zero, $13
-	## This is where critical peripheral initializtion takes place
+	## Device Initialization
 	addi $t1, $zero, 0x5000 # N3: Enable interrupts, CP0, and CP2
 	append_intr_flag_mask($t1)
 	mtc0 $t1, $12
 	mtc0 $zero, $13 # N2: Init the other registers to zero
 	mtc0 $zero, $14
-	addi $sp, $zero, 0x3F
+	
+	addi $sp, $zero, 0x3F # N3: Initialize the stack pointer
 	sll $sp, $sp, 0x8
 	addi $sp, $sp, 0xFC
+	
+	addi $t0, $zero, NTICKS # N3: Initialize the timer
+	mtc0 $zero, $22
+	mtc0 $t0, $23
+	
+	add $t0, $zero, $zero # N3: Zero out T0, T1, and T2 after memory test OK and device initialization is complete
+	add $t1, $zero, $zero
+	add $t2, $zero, $zero
 	## Start main, then halt if we somehow return out
 	jal __KMAIN
 	
@@ -178,7 +182,7 @@ MEMIO_TEST_OK:
 		#nop
 		#nop
 		#nop
-		nop
+		#nop
 		nop
 		nop
 		nop
@@ -392,7 +396,6 @@ WHILE_SCHED_SLICE:
 		sw $t1, TEST_WORD($zero)
 		add $s0, $zero, $zero
 	END_FOO:
-	sw $zero, TIMER_TRIGGER($zero)
 	
 	j WHILE_SCHED_SLICE
 	# Should not return out of main, but here for correctness:
@@ -401,11 +404,8 @@ WHILE_SCHED_SLICE:
 
 PROC_INTR_HANDLE_TIMER:
 	# Handle the timer
-	push($t0)
-	addi $t0, $zero, 0x1
-	sw $t0, TIMER_TRIGGER($zero)
-	pop($t0)
-	jr $ra # K0 designated as return address for interrupt handlers
+	mtc0 $zero, $22
+	jr $ra
 
 
 PROC_INTR_HANDLE_ACKBAR:
@@ -422,8 +422,9 @@ PROC_INTR_HANDLE_AES:
 	push($t0)
 	addi $t0, $zero, 0x1 # Signal that AES is now complete
 	sw $t0, AES_DONE($zero)
+	nop
 	pop($t0)
-	jr $ra # K0 designated as return address for interrupt handlers
+	jr $ra
 
 
 __HALT:	# End of program
