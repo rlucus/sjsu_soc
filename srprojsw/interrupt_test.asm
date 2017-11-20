@@ -35,9 +35,6 @@
 	#    5    0    0    0      8    5    0    1
 
 __INIT:
-	# Two zero test instructions
-	mtc0 $zero, $12
-	mtc0 $zero, $13
 	## This is where critical peripheral initializtion takes place
 	addi $t1, $zero, 0x5000 # N4: Enable interrupts, CP0, and CP2
 	#sll $t1, $t1, 0x10
@@ -54,8 +51,8 @@ __INIT:
 	
 	j __HALT
 	
-		#nop # N(whatever): Padding instructions to align the ISR in the program to address 0x180
-		#nop # Note: Remove exactly one instruction for every instruction added above this comment!
+		nop # N(whatever): Padding instructions to align the ISR in the program to address 0x180
+		nop # Note: Remove exactly one instruction for every instruction added above this comment!
 		nop
 		nop
 		nop
@@ -145,7 +142,7 @@ __INTR: ## Regs used: T0, T1
 	mfc0 $t8, $12 # Turn off the master interrupt flag
 	srl $t8, $t8, 0x1
 	sll $t8, $t8, 0x1
-	mtc0 $t9, $12
+	mtc0 $12, $t9
 	
 	## TODO: Consider pushing $t1 to the stack and restoring once done
 	mfc0 $t8, $13 # Grab the interrupt statuses
@@ -165,9 +162,9 @@ __INTR: ## Regs used: T0, T1
 		addi $t9 $t9, 0x1 # Signal is_external by setting bit 0 to 1
 	END_IS_EXTERN:
 	
-	sw  $t9, INTR_CODE($zero) # This is where the interrupt routine should be taken
+	sw  $t9, INTR_CODE($zero)
 	
-	# TODO: Update this such that only the activated interrupt is reset
+	# TODO: Update this such that only the activated interrupt is triggered
 	mfc0 $t9, $12 # N7: Reset interrupt controls
 	addi $t8, $t8, 0xFF
 	sll $t8, $t8, 0x8
@@ -178,7 +175,7 @@ __INTR: ## Regs used: T0, T1
 	mtc0 $t9, $12
 	and $t9, $t9, 0x8501
 	mtc0 $t9, $12
-	nop # N?: How many NOPs for a Klondike bar?
+	
 	mfc0 $t9, $14 # N2: return to whence we've interrupted
 	jr $t9 # End ISR
 	
@@ -211,35 +208,5 @@ __KMAIN:
 	j WHILE_SCHED_SLICE
 	# Should not return out of main, but here for correctness:
 	jr $ra
-	
-PROC_INTR_HANDLE_AES:
-	mfc0 $t9, $12 # N7: Reset interrupt controls
-	addi $t8, $t8, 0xFF
-	sll $t8, $t8, 0x8
-	addi $t8, $t8, 0xFF
-	sll $t8, $t8, 0x10
-	addi $t8 $t8, 0x00FF
-	and $t9, $t9, $t8
-	mtc0 $t9, $12
-	and $t9, $t9, 0x8501
-	mtc0 $t9, $12
-	nop # N?: How many NOPs for a Klondike bar?
-	mfc0 $t9, $14 # N2: return to whence we've interrupted
-	jr $k0 # K0 designated as return address for interrupt handlers
-	
-PROC_INTR_HANDLE_TIMER:
-	mfc0 $t9, $12 # N7: Reset interrupt controls
-	addi $t8, $t8, 0xFF
-	sll $t8, $t8, 0x8
-	addi $t8, $t8, 0xFF
-	sll $t8, $t8, 0x10
-	addi $t8 $t8, 0x00FF
-	and $t9, $t9, $t8
-	mtc0 $t9, $12
-	and $t9, $t9, 0x8501
-	mtc0 $t9, $12
-	nop # N?: How many NOPs for a Klondike bar?
-	mfc0 $t9, $14 # N2: return to whence we've interrupted
-	jr $k0 # K0 designated as return address for interrupt handlers
 	
 __HALT:	# End of program

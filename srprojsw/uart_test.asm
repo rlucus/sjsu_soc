@@ -10,12 +10,12 @@ __INIT:
 	addi $s0, $zero, JA
 	sll $s0, $s0, 0x10
 	addi $s0, $s0, RK
-	sw $s0, UART
+	sw $s0, UART($0)
 
 	addi $s0, $zero, SCOL
 	sll $s0, $s0, 0x10
 	addi $s0, $s0, SCOL
-	sw $s0, UART
+	sw $s0, UART($0)
 	
 	addi $s1, $zero, 20
 	
@@ -23,5 +23,5 @@ LOOP:	addi $s1, $s1, -1
 	beq $s1, $zero, DONE
 	j LOOP
 DONE:	addi $s0, $zero, LTRV
-	sw $s0, UART
+	sw $s0, UART($0)
 __HALT:	j __HALT
