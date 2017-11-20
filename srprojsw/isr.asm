@@ -318,11 +318,11 @@ __KMAIN:
 	# Disable the timer
 	addi $t0, $zero, 0xFF
 	sll $t0, $t0, 0x8
-	addi $t0, $zero, 0xFF
+	addi $t0, $t0, 0xFF
 	sll $t0, $t0, 0x8
-	addi $t0, $zero, 0xFF
+	addi $t0, $t0, 0xFF
 	sll $t0, $t0, 0x8
-	addi $t0, $zero, 0xFF
+	addi $t0, $t0, 0xFF
 	mtc0 $t0, $22
 	
 	addi $s0, $zero, 1 # Just a simple count by 5 to while away the time until I can properly implement this. Also tests memory manipulation.
