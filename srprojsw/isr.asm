@@ -37,7 +37,7 @@
 	#addi %reg, %reg, 0x8501
 	# This also holds the processor in kernel mode and normal level (see KSU, ERL, and EXL)
 	sll %reg, %reg, 0x8
-	addi %reg, %reg, 0x85 # Enable interrupts 7 and 1
+	addi %reg, %reg, 0x95 # Enable interrupts 5, 2, and 0
 	sll %reg, %reg, 0x8
 	addi %reg, %reg, 0x01 # Enable master interrupt flag and sets KSU, ERL, and EXL
 	.end_macro 
@@ -292,20 +292,23 @@ PROC_RESET_INTR:
 	push($k1)
 	## Reset interrupt controls
 	mfc0 $k1, $12
-	addi $k0, $k0, 0xFF # N7: Construct a disabling mask
-	sll $k0, $k0, 0x8
-	addi $k0, $k0, 0xFF
-	sll $k0, $k0, 0x8 # N2: Reset all interrupts ($a0 is the interrupt pin that was triggered)
-	add $k0, $k0, $a0
-	sll $k0, $k0, 0x8
-	addi $k0, $k0, 0xFF
+	xor $k1, $k1, $a0 # Toggle the 
+	#addi $k0, $k0, 0xFF # N7: Construct a disabling mask
+	#sll $k0, $k0, 0x8
+	#addi $k0, $k0, 0xFF
+	#sll $k0, $k0, 0x8 # N2: Reset all interrupts ($a0 is the interrupt pin that was triggered)
+	#sll $k0, $k0, 0x8
+	#addi $k0, $k0, 0xFF
 	
-	and $k1, $k1, $k0 # Turn off relevant bits
+	#and $k1, $k1, $k0 # Turn off relevant bits
 	mtc0 $k1, $12 # Set new register value
 	
-	srl $k1, $k1, 0x10 # N2: Truncate the interrupt bits and append new
-	append_intr_flag_mask($k1)
-	or $k1, $k1, $k0
+	#srl $k1, $k1, 0x10 # N2: Truncate the interrupt bits and append interrupt set
+	#append_intr_flag_mask($k1)
+	#add $k0, $zero, $a0
+	#or $k1, $k1, $k0
+	addi $k0, $k1, 0x1 # N3: toggle fired interrupt and master flag, re-enable interrupt
+	xor $k1, $k1, $a0
 	mtc0 $k1, $12
 	
 	pop($k1)
