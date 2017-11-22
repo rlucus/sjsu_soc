@@ -1,7 +1,7 @@
 
 
 
-module soc (input clk450MHz, rst, [3:0] INT , output uart_rx_out, /*output oled_sdin, oled_sclk, oled_dc, oled_res, oled_vbat, oled_vdd, output [7:0] led,*/ input btnr, btnl, sw6, sw7);
+module soc (input clk450MHz, rst, [3:0] INT , output uart_rx_out, output oled_sdin, oled_sclk, oled_dc, oled_res, oled_vbat, oled_vdd, output [7:0] led, input btnr, btnl, sw6, sw7);
 
     wire clk_sec, clk_10MHz;
     
@@ -11,7 +11,7 @@ module soc (input clk450MHz, rst, [3:0] INT , output uart_rx_out, /*output oled_
     mips_top core (.clk(clk_1MHz), .serialClk(clk_1MHz), .rst(btnl), .INT(INT), .pc_current(pc_current), .instr(instr), .serial(uart_rx_out));
     
 	wire [7:0] led;
-//    spiScreen screen( .clk(clk_1MHz), .rstn(rst), .pc(pc_current), .instr(instr), .oled_sdin(oled_sdin), .oled_sclk(oled_sclk), .oled_dc(oled_dc), .oled_res(oled_res), .oled_vbat(oled_vbat), .oled_vdd(oled_vdd), .led(led) );
+    spiScreen screen( .clk(clk450MHz), .rstn(rst), .pc(pc_current), .instr(instr), .oled_sdin(oled_sdin), .oled_sclk(oled_sclk), .oled_dc(oled_dc), .oled_res(oled_res), .oled_vbat(oled_vbat), .oled_vdd(oled_vdd), .led(led) );
 
 
  /*mips_top
