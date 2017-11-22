@@ -222,43 +222,67 @@ endmodule
 
 `timescale 1ns / 1ps
 
-module clk_gen(input clk450MHz, input rst, output reg clk_sec, output reg clk_5KHz, output reg clk_1MHz);
+module clk_gen(input clk450MHz, input rst, output reg clk_sec, output reg clk_5KHz, output reg clk_1MHz, input btnr, sw7, sw6, output reg clk_special);
 
-integer count, count1, count2;
+    integer count, count1, count2;
+    integer counter = 0 ;
+    reg toggle = 0;
 
-always@(posedge clk450MHz)
-    begin
-        if(rst)
-        begin
+    always@(posedge clk450MHz) begin
+        if(rst) begin
             count = 0;
             count1 = 0;
+            count2 = 0;
             clk_sec = 0;
             clk_5KHz =0;
-            count2 = 0;
             clk_1MHz = 0;
+
         end
-        else
-        begin
-            if(count == 50000000) /* 50e6 x 10ns = 1/2sec, toggle twice for 1sec */
-            begin
-            clk_sec = ~clk_sec;
-            count = 0;
+        else begin
+            if(count == 50000000) begin/* 50e6 x 10ns = 1/2sec, toggle twice for 1sec */
+                clk_sec = ~clk_sec;
+                count = 0;
             end
-            if(count1 == 10000)
-            begin
-            clk_5KHz = ~clk_5KHz;
-            count1 = 0;
+            if(count1 == 10000)   begin
+                clk_5KHz = ~clk_5KHz;
+                count1 = 0;
             end
-            if(count2 == 100)
-            begin
-            clk_1MHz = ~clk_1MHz;
-            count2 = 0;
+            if(count2 == 100)  begin
+                clk_1MHz = ~clk_1MHz;
+                count2 = 0;
             end
-            count = count + 1;
+
+
+            count  = count  + 1;
             count1 = count1 + 1;
             count2 = count2 + 1;
         end
     end
+
+    debounce deb_btnr (
+        .pb_debounced(dBtnr), 
+        .pb(btnr), 
+        .clk(clk_1MHz)
+    );
+
+    always @ (clk_1MHz) begin
+        if(sw7) begin
+            clk_special <= clk_1MHz;
+        end
+        else begin
+            if(dBtnr) clk_special = ~clk_special;
+            if(sw6 != toggle) begin
+                if(counter < 10) begin
+                    clk_special <= clk_1MHz;
+                    counter = counter + 1;
+                end else begin
+                    counter = 0;
+                    toggle = sw6;
+                end
+            end
+        end
+    end
+
 endmodule // end clk_gen
 
 
@@ -397,19 +421,19 @@ module debounce #(parameter width = 16) (
 	input wire clk
 	);
 
-localparam shift_max = (2**width)-1;
+    localparam shift_max = (2**width)-1;
 
-reg [width-1:0] shift;
+    reg [width-1:0] shift;
 
-always @ (posedge clk)
-begin
-	shift[width-2:0] <= shift[width-1:1];
-	shift[width-1] <= pb;
-	if (shift == shift_max)
-		pb_debounced <= 1'b1;
-	else
-		pb_debounced <= 1'b0;
-end
+    always @ (posedge clk)
+    begin
+    	shift[width-2:0] <= shift[width-1:1];
+    	shift[width-1] <= pb;
+    	if (shift == shift_max)
+    		pb_debounced <= 1'b1;
+    	else
+    		pb_debounced <= 1'b0;
+    end
 endmodule
 
 

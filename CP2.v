@@ -165,22 +165,22 @@ module CP2(
             dmaAck    : state_dma  = HOLD_ACK ? dmaReadA : dmaAck;
             dmaReadA  : begin 
                         r00[i]    <= wrData_dma;
-                        addr_dma   = addr_dma + 4;
+                        addr_dma   = addr_dma + 1;
                         length     = length + 1;
                         state_dma  = (length < reg_cpu[0][15:0])? dmaReadB : dmaPadB;                end
             dmaReadB  : begin
                         r01[i]    <= wrData_dma;
-                        addr_dma   = addr_dma + 4;
+                        addr_dma   = addr_dma + 1;
                         length     = length + 1;
                         state_dma  = (length < reg_cpu[0][15:0])? dmaReadC : dmaPadC;                end
             dmaReadC  : begin
                         r10[i]    <= wrData_dma;
-                        addr_dma   = addr_dma + 4;
+                        addr_dma   = addr_dma + 1;
                         length     = length + 1;
                         state_dma  = (length < reg_cpu[0][15:0])? dmaReadD : dmaPadD;                end
             dmaReadD  : begin
                         r11[i]    <= wrData_dma;
-                        addr_dma   = addr_dma + 4;
+                        addr_dma   = addr_dma + 1;
                         length     = length + 1;
                         i          = i + 1;
                         state_dma  = (length < reg_cpu[0][15:0])? dmaReadA : dmaReadDone;            end
@@ -211,19 +211,20 @@ module CP2(
                         state_dma  = dmaWriteB;	                  end         
             dmaWriteB : begin
                         rdData_dma = r00[i];
+                        addr_dma   = addr_dma + 1;
                         length     = length - 4;
                         state_dma  = dmaWriteC;                   end
             dmaWriteC : begin
                         rdData_dma = r01[i];
-                        addr_dma   = addr_dma + 4;
+                        addr_dma   = addr_dma + 1;
                         state_dma  = dmaWriteD;                   end
             dmaWriteD : begin
                         rdData_dma = r10[i];
-                        addr_dma   = addr_dma + 4;
+                        addr_dma   = addr_dma + 1;
                         state_dma  = dmaWriteE;                   end
             dmaWriteE : begin
                         rdData_dma = r11[i];
-                        addr_dma   = addr_dma + 4;
+                        addr_dma   = addr_dma + 1;
                         i          = i + i;
                         state_dma  = (length > 0) ? dmaWriteB : dmaWriteDone;        end
             dmaWriteDone:begin 

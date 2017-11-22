@@ -19,7 +19,7 @@
 module spiScreen(
     input clk,
     input rstn,// CPU Reset Button turns the display on and off
-//    input [31:0] pc, instr,
+    input [31:0] pc, instr,
     output oled_sdin,
     output oled_sclk,
     output oled_dc,
@@ -34,7 +34,7 @@ module spiScreen(
 //   - uncomment this block
 //   - comment line 11, input [31:0] pc, instr
 //////////////
-    reg [ 31:0] pc       = 0;   // SWAP for input if not standalone
+/*    reg [ 31:0] pc       = 0;   // SWAP for input if not standalone
     reg [ 31:0] instr    = 0;
     reg [ 14:0] counter  = 0;
     always @ (posedge clk) begin
@@ -44,7 +44,7 @@ module spiScreen(
             instr = instr + 1;
             counter = 0;
         end     
-    end 
+    end */
 ////////////// END STANDALONE STUFF ///////////////
 
 
