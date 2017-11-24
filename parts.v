@@ -222,7 +222,7 @@ endmodule
 
 `timescale 1ns / 1ps
 
-module clk_gen(input clk450MHz, input rst, output reg clk_sec, output reg clk_5KHz, output reg clk_1MHz, input btnr, sw7, sw6, output reg clk_special);
+module clk_gen(input clk450MHz, input rst, output reg clk_sec, output reg clk_5KHz, output reg clk_1MHz);
 
     integer count, count1, count2;
     integer counter = 0 ;
@@ -256,30 +256,6 @@ module clk_gen(input clk450MHz, input rst, output reg clk_sec, output reg clk_5K
             count  = count  + 1;
             count1 = count1 + 1;
             count2 = count2 + 1;
-        end
-    end
-
-    debounce deb_btnr (
-        .pb_debounced(dBtnr), 
-        .pb(btnr), 
-        .clk(clk_1MHz)
-    );
-
-    always @ (clk_1MHz) begin
-        if(sw7) begin
-            clk_special <= clk_1MHz;
-        end
-        else begin
-            if(dBtnr) clk_special = ~clk_special;
-            if(sw6 != toggle) begin
-                if(counter < 10) begin
-                    clk_special <= clk_1MHz;
-                    counter = counter + 1;
-                end else begin
-                    counter = 0;
-                    toggle = sw6;
-                end
-            end
         end
     end
 

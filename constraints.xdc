@@ -7,22 +7,19 @@ set_property -dict { PACKAGE_PIN R4    IOSTANDARD LVCMOS33 } [get_ports { clk450
 create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports {clk450MHz}];
 
 
-
-#interrupts
-set_property -dict { PACKAGE_PIN E22  IOSTANDARD LVCMOS12} [get_ports { INT[0] }]; #IO_L22P_T3_16 Sch=sw[0]
-set_property -dict { PACKAGE_PIN F21  IOSTANDARD LVCMOS12} [get_ports { INT[1] }]; #IO_25_16 Sch=sw[1]
-set_property -dict { PACKAGE_PIN G21  IOSTANDARD LVCMOS12} [get_ports { INT[2] }]; #IO_L24P_T3_16 Sch=sw[2]
-set_property -dict { PACKAGE_PIN G22  IOSTANDARD LVCMOS12} [get_ports { INT[3] }]; #IO_L24N_T3_16 Sch=sw[3]
-#set_property -dict { PACKAGE_PIN H17  IOSTANDARD LVCMOS12} [get_ports { INT[4] }]; #IO_L6P_T0_15 Sch=sw[4]
-
-
 ## UART
 set_property -dict { PACKAGE_PIN AA19  IOSTANDARD LVCMOS33 } [get_ports { uart_rx_out }]; #IO_L15P_T2_DQS_RDWR_B_14 Sch=uart_rx_out
 #set_property -dict { PACKAGE_PIN V18   IOSTANDARD LVCMOS33 } [get_ports { uart_tx_in }]; #IO_L14P_T2_SRCC_14 Sch=uart_tx_in
 
-# Slide switches
-set_property -dict { PACKAGE_PIN K13   IOSTANDARD LVCMOS12 } [get_ports { sw6 }]; 
-set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS12 } [get_ports { sw7 }]; 
+# Slide switches (interrupts and CPU clk controls)
+set_property -dict { PACKAGE_PIN E22   IOSTANDARD LVCMOS12 } [get_ports { switch[0] }]; 
+set_property -dict { PACKAGE_PIN F21   IOSTANDARD LVCMOS12 } [get_ports { switch[1] }]; 
+set_property -dict { PACKAGE_PIN G21   IOSTANDARD LVCMOS12 } [get_ports { switch[2] }]; 
+set_property -dict { PACKAGE_PIN G22   IOSTANDARD LVCMOS12 } [get_ports { switch[3] }]; 
+set_property -dict { PACKAGE_PIN H17   IOSTANDARD LVCMOS12 } [get_ports { switch[4] }]; 
+set_property -dict { PACKAGE_PIN J16   IOSTANDARD LVCMOS12 } [get_ports { switch[5] }]; 
+set_property -dict { PACKAGE_PIN K13   IOSTANDARD LVCMOS12 } [get_ports { switch[6] }]; 
+set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS12 } [get_ports { switch[7] }]; 
 
 
 # LEDs
@@ -42,7 +39,7 @@ set_property -dict { PACKAGE_PIN G4  IOSTANDARD LVCMOS12 } [get_ports { rst }]; 
 #set_property -dict { PACKAGE_PIN B22 IOSTANDARD LVCMOS12 } [get_ports { btnC }]; #IO_L20N_T3_16 Sch=btnc
 #set_property -dict { PACKAGE_PIN D22 IOSTANDARD LVCMOS12 } [get_ports { btnD }]; #IO_L22N_T3_16 Sch=btnd
 set_property -dict { PACKAGE_PIN C22 IOSTANDARD LVCMOS12 } [get_ports { btnl }]; #IO_L20P_T3_16 Sch=btnl
-set_property -dict { PACKAGE_PIN D14 IOSTANDARD LVCMOS12 } [get_ports { btnr }]; #IO_L6P_T0_16 Sch=btnr
+#set_property -dict { PACKAGE_PIN D14 IOSTANDARD LVCMOS12 } [get_ports { btnr }]; #IO_L6P_T0_16 Sch=btnr
 #set_property -dict { PACKAGE_PIN F15 IOSTANDARD LVCMOS12 } [get_ports { btnU }]; #IO_0_16 Sch=btnu
 
 
