@@ -1,6 +1,6 @@
 #!/bin/bash
 if [ ! "$OUTDIR" ]; then
-	OUTDIR=".."
+	OUTDIR="/Users/kmwetles/vm_shared"
 fi
 
 if ! which mars > /dev/null; then

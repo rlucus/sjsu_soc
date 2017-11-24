@@ -179,7 +179,7 @@ MEMIO_TEST_OK:
 #####################################################
 
 __X180_HANDLER: ## Regs clobbered: K0
-	sw $ra, ISR00($zero) # N5: store the registers that I'm going to use to the stack
+	sw $ra, ISR00($zero) # N5: store the registers that I'm going to use to memory
 	sw $k1, ISR01($zero)
 	sw $a0, ISR02($zero)
 	sw $t0, ISR03($zero)
@@ -201,6 +201,7 @@ __X180_HANDLER: ## Regs clobbered: K0
 	beq $k1, $zero, IS_INTR # Would do a bne here, but not available in the arch, hence this skip-step if
 	j OTHER_EXCP
 	IS_INTR:
+
 		srl $k0, $k0, 0x8 # N3: Look at the interrupt flags
 		addi $k1, $zero, 0xFF
 		and $k0, $k1, $k0
@@ -215,6 +216,17 @@ __X180_HANDLER: ## Regs clobbered: K0
 		and $k1, $k0, $k1
 		beq $k1, $a0, CASE_HWINTR4
 		
+		#j PCx200_BYPASS # N2 (and next label): GOTCHA: This must be precisely positioned to bypass PC 0x200
+		#nop # Failure to do so will cause the ISR to reset!!
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#nop
+		#PCx200_BYPASS:
 		addi $k1, $zero, 0x20
 		add $a0, $zero, $k1
 		and $k1, $k0, $k1
@@ -292,7 +304,7 @@ PROC_RESET_INTR:
 	push($k1)
 	## Reset interrupt controls
 	mfc0 $k1, $12
-	xor $k1, $k1, $a0 # Toggle the 
+	xor $k1, $k1, $a0 # Toggle the interrupt bit
 	#addi $k0, $k0, 0xFF # N7: Construct a disabling mask
 	#sll $k0, $k0, 0x8
 	#addi $k0, $k0, 0xFF
@@ -352,10 +364,18 @@ WHILE_SCHED_SLICE:
 
 
 PROC_INTR_HANDLE_TIMER:
-	# Handle the timer
+	# Handle the timer, start the scheduler
 	mtc0 $zero, $22
 	jr $ra
-
+	
+	
+PROC_INTR_OTHER:
+	push($t0)
+	addi $t0, $zero, 0x1
+	sw $t0, OTHER_INTR($zero)
+	pop($t0)
+	jr $ra
+	
 
 PROC_INTR_HANDLE_ACKBAR:
 	# It's a trap!

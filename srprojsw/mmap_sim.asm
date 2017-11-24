@@ -19,7 +19,8 @@
 	ISR15:	.word	0x00000000
 	
 	## Kernel Variable Locations
-	EXCP_CODE:	.word 0x0000
-	TRAP_SET:	.word 0x0000
-	AES_DONE:	.word 0x0000
-	TEST_WORD:	.word 0x0000
+	EXCP_CODE:	.word	0x00000000
+	TRAP_SET:	.word	0x00000000
+	AES_DONE:	.word	0x00000000
+	TEST_WORD:	.word	0x00000000
+	OTHER_INTR:	.word	0x00000000
