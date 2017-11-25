@@ -180,19 +180,30 @@ MEMIO_TEST_OK:
 
 __X180_HANDLER: ## Regs clobbered: K0
 	sw $ra, ISR00($zero) # N5: store the registers that I'm going to use to memory
-	sw $k1, ISR01($zero)
-	sw $a0, ISR02($zero)
-	sw $t0, ISR03($zero)
+	sw $sp, ISR01($zero)
+	sw $k1, ISR02($zero)
+	sw $a0, ISR03($zero)
+	sw $t0, ISR04($zero)
 	
-	sw $ra, 0x7FEF($zero)
+	#sw $ra, 0x7FEF($zero)
 	
-	mfc0 $k0, $12 # Turn off the master interrupt flag
-	srl $k0, $k0, 0x1
-	sll $k0, $k0, 0x1
-	mtc0 $k0, $12
-	
-	## TODO: Consider pushing $t1 to the stack and restoring once done
 	mfc0 $k0, $13 # Grab the interrupt statuses
+	sw $k0, ISR07($zero) # Store status to memory
+
+	mfc0 $k0, $14 # Grab the interrupt statuses
+	sw $k0, ISR06($zero) # Store status to memory
+
+	mfc0 $k0, $12 # N8: Acknowledge all interrupts and turn off master flag
+	sw $k0, ISR05($zero) # Store the register status
+	addi $k1, $zero, 0xFFF # N7: Acknowledge all interrupts and turn off master flag # xor $k0, $k0, 0x1
+	sll $k1, $k1, 0xC
+	addi $k1, $k1, 0xF00
+	sll $k1, $k1, 0x8
+	addi $k1, $k1, 0xFE
+	and $k0, $k1, $k0
+	mtc0 $k0, $12
+
+	lw $k0, ISR05($zero) # Store status to memory
 	addi $k1, $zero, 0x007C # N2: Mask out everything except exception code
 	and  $k1, $k0, $k1
 	srl $k1, $k1, 0x2
@@ -216,17 +227,6 @@ __X180_HANDLER: ## Regs clobbered: K0
 		and $k1, $k0, $k1
 		beq $k1, $a0, CASE_HWINTR4
 		
-		#j PCx200_BYPASS # N2 (and next label): GOTCHA: This must be precisely positioned to bypass PC 0x200
-		#nop # Failure to do so will cause the ISR to reset!!
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#nop
-		#PCx200_BYPASS:
 		addi $k1, $zero, 0x20
 		add $a0, $zero, $k1
 		and $k1, $k0, $k1
@@ -275,14 +275,19 @@ __X180_HANDLER: ## Regs clobbered: K0
 			jal PROC_INTR_HANDLE_ACKBAR # Both traps handled by Adm. Ackbar
 			j END_IS_INTR
 	END_IS_INTR:
-		jal PROC_RESET_INTR # Reset interrupt $a0
 	OTHER_EXCP:
 		# What do we want to do with other exceptions?
 
+	mfc0 $k1, $12
+	append_intr_flag_mask($k0) # N2: Reset all interrupts ($a0 is the interrupt pin that was triggered)
+	or $k1, $k0, $k1
+	mtc0 $k1, $12 # Set new register value
+
+	lw $t0, ISR04($zero)
+	lw $a0, ISR03($zero)
+	lw $k1, ISR02($zero)
+	lw $sp, ISR01($zero)
 	lw $ra, ISR00($zero) # N5: store the registers that I'm going to use to the stack
-	lw $k1, ISR01($zero)
-	lw $a0, ISR02($zero)
-	lw $t0, ISR03($zero)
 	
 	mfc0 $k0, $14 # N2: return to whence we've interrupted
 	jr $k0 # End ISR
@@ -296,36 +301,6 @@ __X180_HANDLER: ## Regs clobbered: K0
 		nop
 		nop
 		nop
-
-
-PROC_RESET_INTR:
-	# In MIPS convention these shouldn't be stack saved, but because of the sensitive nature of the ISR, they are here
-	push($k0)
-	push($k1)
-	## Reset interrupt controls
-	mfc0 $k1, $12
-	xor $k1, $k1, $a0 # Toggle the interrupt bit
-	#addi $k0, $k0, 0xFF # N7: Construct a disabling mask
-	#sll $k0, $k0, 0x8
-	#addi $k0, $k0, 0xFF
-	#sll $k0, $k0, 0x8 # N2: Reset all interrupts ($a0 is the interrupt pin that was triggered)
-	#sll $k0, $k0, 0x8
-	#addi $k0, $k0, 0xFF
-	
-	#and $k1, $k1, $k0 # Turn off relevant bits
-	mtc0 $k1, $12 # Set new register value
-	
-	#srl $k1, $k1, 0x10 # N2: Truncate the interrupt bits and append interrupt set
-	#append_intr_flag_mask($k1)
-	#add $k0, $zero, $a0
-	#or $k1, $k1, $k0
-	addi $k0, $k1, 0x1 # N3: toggle fired interrupt and master flag, re-enable interrupt
-	xor $k1, $k1, $a0
-	mtc0 $k1, $12
-	
-	pop($k1)
-	pop($k0)
-	jr $ra
 
 
 	## Main Program Start
