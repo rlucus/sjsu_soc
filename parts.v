@@ -74,14 +74,16 @@ module imem #(parameter wide = 8)
 //(input [5:0] a, output [wide-1:0] y);
 (input [31:0] a, output [wide-1:0] y);
     //reg [wide-1:0] rom [0:63];
-    reg [wide-1:0] rom [0:1000];
+    reg [wide-1:0] rom [0:1500];
     initial $readmemh ("isr.mem", rom);
+    //initial $readmemh ("memfile.dat", rom);
     assign y = rom[(a/4)];
 endmodule
 
 module dmem #(parameter wide = 8)
 (input clk, we, [31:0] a, [wide-1:0] d, output [wide-1:0] q);
     reg [wide-1:0] ram [0:131071];
+    //reg [wide-1:0] ram [0:91000];
     always @ (posedge clk) if (we) ram[a/4] <= d;
     assign q = ram[a/4];
 endmodule
@@ -222,28 +224,43 @@ endmodule
 
 `timescale 1ns / 1ps
 
-module clk_gen(input clk450MHz, input rst, output reg clk_sec);
+module clk_gen(input clk450MHz, input rst, output reg clk_sec, output reg clk_5KHz, output reg clk_1MHz);
 
-integer count, count1;
+    integer count, count1, count2;
+    integer counter = 0 ;
+    reg toggle = 0;
 
-always@(posedge clk450MHz)
-    begin
-        if(rst)
-        begin
+    always@(posedge clk450MHz) begin
+        if(rst) begin
             count = 0;
+            count1 = 0;
+            count2 = 0;
             clk_sec = 0;
+            clk_5KHz =0;
+            clk_1MHz = 0;
+
         end
-        else
-        begin
-            //if(count == 50000000) /* 50e6 x 10ns = 1/2sec, toggle twice for 1sec */
-            if(count == 604) /* 50e6 x 10ns = 1/2sec, toggle twice for 1sec */
-            begin
-            clk_sec = ~clk_sec;
-            count = 0;
+        else begin
+            if(count == 50000000) begin/* 50e6 x 10ns = 1/2sec, toggle twice for 1sec */
+                clk_sec = ~clk_sec;
+                count = 0;
             end
-            count = count + 1;
+            if(count1 == 10000)   begin
+                clk_5KHz = ~clk_5KHz;
+                count1 = 0;
+            end
+            if(count2 == 100)  begin
+                clk_1MHz = ~clk_1MHz;
+                count2 = 0;
+            end
+
+
+            count  = count  + 1;
+            count1 = count1 + 1;
+            count2 = count2 + 1;
         end
     end
+
 endmodule // end clk_gen
 
 
@@ -382,19 +399,19 @@ module debounce #(parameter width = 16) (
 	input wire clk
 	);
 
-localparam shift_max = (2**width)-1;
+    localparam shift_max = (2**width)-1;
 
-reg [width-1:0] shift;
+    reg [width-1:0] shift;
 
-always @ (posedge clk)
-begin
-	shift[width-2:0] <= shift[width-1:1];
-	shift[width-1] <= pb;
-	if (shift == shift_max)
-		pb_debounced <= 1'b1;
-	else
-		pb_debounced <= 1'b0;
-end
+    always @ (posedge clk)
+    begin
+    	shift[width-2:0] <= shift[width-1:1];
+    	shift[width-1] <= pb;
+    	if (shift == shift_max)
+    		pb_debounced <= 1'b1;
+    	else
+    		pb_debounced <= 1'b0;
+    end
 endmodule
 
 
