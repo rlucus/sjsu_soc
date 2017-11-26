@@ -186,15 +186,16 @@ __X180_HANDLER: ## Regs clobbered: K0
 	sw $t0, ISR04($zero)
 	
 	#sw $ra, 0x7FEF($zero)
-	
-	mfc0 $k0, $13 # Grab the interrupt statuses
-	sw $k0, ISR07($zero) # Store status to memory
 
-	mfc0 $k0, $14 # Grab the interrupt statuses
-	sw $k0, ISR06($zero) # Store status to memory
+	mfc0 $k0, $14 # N2: Grab the address of the interrupted instruction to memory
+	sw $k0, ISR05($zero)
+	
+	mfc0 $k0, $13 # N2: Grab the interrupt statuses to memory
+	sw $k0, ISR07($zero)
 
 	mfc0 $k0, $12 # N8: Acknowledge all interrupts and turn off master flag
-	sw $k0, ISR05($zero) # Store the register status
+	sw $k0, ISR06($zero) # Store the register status
+
 	addi $k1, $zero, 0xFFF # N7: Acknowledge all interrupts and turn off master flag # xor $k0, $k0, 0x1
 	sll $k1, $k1, 0xC
 	addi $k1, $k1, 0xF00
@@ -203,83 +204,10 @@ __X180_HANDLER: ## Regs clobbered: K0
 	and $k0, $k1, $k0
 	mtc0 $k0, $12
 
-	lw $k0, ISR05($zero) # Store status to memory
-	addi $k1, $zero, 0x007C # N2: Mask out everything except exception code
-	and  $k1, $k0, $k1
-	srl $k1, $k1, 0x2
-	sw  $k1, EXCP_CODE($zero)
-	
-	beq $k1, $zero, IS_INTR # Would do a bne here, but not available in the arch, hence this skip-step if
-	j OTHER_EXCP
-	IS_INTR:
-
-		srl $k0, $k0, 0x8 # N3: Look at the interrupt flags
-		addi $k1, $zero, 0xFF
-		and $k0, $k1, $k0
-		
-		addi $k1, $zero, 0x80 # N4: Case HWINTR5 (also for next few blocks for different interrupts)
-		add $a0, $zero, $k1
-		and $k1, $k0, $k1
-		beq $k1, $a0, CASE_HWINTR5
-		
-		addi $k1, $zero, 0x40
-		add $a0, $zero, $k1
-		and $k1, $k0, $k1
-		beq $k1, $a0, CASE_HWINTR4
-		
-		addi $k1, $zero, 0x20
-		add $a0, $zero, $k1
-		and $k1, $k0, $k1
-		beq $k1, $a0, CASE_HWINTR3
-		
-		addi $k1, $zero, 0x10
-		add $a0, $zero, $k1
-		and $k1, $k0, $k1
-		beq $k1, $a0, CASE_HWINTR2
-		
-		addi $k1, $zero, 0x08
-		add $a0, $zero, $k1
-		and $k1, $k0, $k1
-		beq $k1, $a0, CASE_HWINTR1
-		
-		addi $k1, $zero, 0x04
-		add $a0, $zero, $k1
-		and $k1, $k0, $k1
-		beq $k1, $a0, CASE_HWINTR0 # TODO: Compare with zero incorrect, fix this
-		
-		addi $k1, $zero, 0x02
-		add $a0, $zero, $k1
-		and $k1, $k0, $k1
-		beq $k1, $a0, CASE_SWINTR1
-		
-		addi $k1, $zero, 0x01
-		add $a0, $zero, $k1
-		and $k1, $k0, $k1
-		beq $k1, $a0, CASE_SWINTR0
-		
-		j END_IS_INTR
-		
-		CASE_HWINTR5:
-			jal PROC_INTR_HANDLE_TIMER
-			j END_IS_INTR
-		CASE_HWINTR4:
-		CASE_HWINTR3:
-		CASE_HWINTR2:
-		CASE_HWINTR1:
-			j END_IS_INTR # Hardware interrupts 1 through 4 ignored, simply reset them
-		CASE_HWINTR0:
-			jal PROC_INTR_HANDLE_AES
-			j END_IS_INTR
-		CASE_SWINTR1:
-		CASE_SWINTR0:
-			jal PROC_INTR_HANDLE_ACKBAR # Both traps handled by Adm. Ackbar
-			j END_IS_INTR
-	END_IS_INTR:
-	OTHER_EXCP:
-		# What do we want to do with other exceptions?
+	jal PROC_INTR_PROCESS
 
 	mfc0 $k1, $12
-	append_intr_flag_mask($k0) # N2: Reset all interrupts ($a0 is the interrupt pin that was triggered)
+	append_intr_flag_mask($k0) # N2: Reset all interrupts
 	or $k1, $k0, $k1
 	mtc0 $k1, $12 # Set new register value
 
@@ -289,8 +217,9 @@ __X180_HANDLER: ## Regs clobbered: K0
 	lw $sp, ISR01($zero)
 	lw $ra, ISR00($zero) # N5: store the registers that I'm going to use to the stack
 	
-	mfc0 $k0, $14 # N2: return to whence we've interrupted
-	jr $k0 # End ISR
+	lw $k0, ISR05($zero) # N2: return to whence we've interrupted
+	jr $k0
+# End ISR
 
 
 		nop # N8: Padding instructions to separate ISR from main line code (not really needed, discard if space gets short)
@@ -336,38 +265,103 @@ WHILE_SCHED_SLICE:
 	j WHILE_SCHED_SLICE
 	# Should not return out of main, but here for correctness:
 	jr $ra
+# End __KMAIN
 
 
-PROC_INTR_HANDLE_TIMER:
-	# Handle the timer, start the scheduler
-	mtc0 $zero, $22
-	jr $ra
+## Interrupt processor. This is called by the X180 handler!
+PROC_INTR_PROCESS:
+	push($k0)
+	push($k1)
+	lw $k0, ISR06($zero) # Load interrupt status to memory (Note: CP0/R13 no longer viable as interrupts reset)
+	addi $k1, $zero, 0x007C # N2: Mask out everything except exception code
+	and  $k1, $k0, $k1
+	srl $k1, $k1, 0x2
+	sw  $k1, EXCP_CODE($zero)
 	
-	
-PROC_INTR_OTHER:
-	push($t0)
-	addi $t0, $zero, 0x1
-	sw $t0, OTHER_INTR($zero)
-	pop($t0)
-	jr $ra
-	
+	beq $k1, $zero, IS_INTR # Would do a bne here, but not available in the arch, hence this skip-step if
+	j OTHER_EXCP
+	IS_INTR:
 
-PROC_INTR_HANDLE_ACKBAR:
-	# It's a trap!
-	push($t0)
-	addi $t0, $zero, 0x1 # Signal that trap was received
-	sw $t0, TRAP_SET($zero)
-	pop($t0)
-	jr $ra
-
-
-PROC_INTR_HANDLE_AES:
-	# Handle AES
-	push($t0)
-	addi $t0, $zero, 0x1 # Signal that AES is now complete
-	sw $t0, AES_DONE($zero)
-	nop
-	pop($t0)
+		srl $k0, $k0, 0x8 # N3: Look at the interrupt flags
+		addi $k1, $zero, 0xFF
+		and $k0, $k1, $k0
+		
+		addi $k1, $zero, 0x80 # N4: Case HWINTR5 (also for next few blocks for different interrupts)
+		add $a0, $zero, $k1
+		and $k1, $k0, $k1
+		beq $k1, $a0, CASE_HWINTR5
+		
+		addi $k1, $zero, 0x40
+		add $a0, $zero, $k1
+		and $k1, $k0, $k1
+		beq $k1, $a0, CASE_HWINTR4
+		
+		addi $k1, $zero, 0x20
+		add $a0, $zero, $k1
+		and $k1, $k0, $k1
+		beq $k1, $a0, CASE_HWINTR3
+		
+		addi $k1, $zero, 0x10
+		add $a0, $zero, $k1
+		and $k1, $k0, $k1
+		beq $k1, $a0, CASE_HWINTR2
+		
+		addi $k1, $zero, 0x08
+		add $a0, $zero, $k1
+		and $k1, $k0, $k1
+		beq $k1, $a0, CASE_HWINTR1
+		
+		addi $k1, $zero, 0x04
+		add $a0, $zero, $k1
+		and $k1, $k0, $k1
+		beq $k1, $a0, CASE_HWINTR0 # TODO: Compare with zero incorrect, fix this (fixed)
+		
+		addi $k1, $zero, 0x02
+		add $a0, $zero, $k1
+		and $k1, $k0, $k1
+		beq $k1, $a0, CASE_SWINTR1
+		
+		addi $k1, $zero, 0x01
+		add $a0, $zero, $k1
+		and $k1, $k0, $k1
+		beq $k1, $a0, CASE_SWINTR0
+		
+		j END_IS_INTR
+		
+		CASE_HWINTR5: # Pet the timer then defer to the scheduler
+			mtc0 $zero, $22
+			j END_IS_INTR
+		CASE_HWINTR4:
+			addi $j0, $zero, 0x4
+			j STORE_OTHER # Hokey slide-through I know, eat me
+		CASE_HWINTR3:
+			addi $t0, $zero, 0x3
+			j STORE_OTHER
+		CASE_HWINTR2:
+			addi $t0, $zero, 0x2
+			j STORE_OTHER
+		CASE_HWINTR1:
+			addi $t0, $zero, 0x1
+			STORE_OTHER:
+			sw $t0, OTHER_INTR($zero)
+			j END_IS_INTR # Hardware interrupts 1 through 4 ignored, simply note and reset them
+		CASE_HWINTR0:
+			addi $t0, $zero, 0x1 # Signal that AES is now complete
+			sw $t0, AES_DONE($zero)
+			nop # Why did I put this here? I'll keep it for now . . .
+			j END_IS_INTR
+		CASE_SWINTR1:
+			addi $t0, $zero, 0x11
+		CASE_SWINTR0: # Any traps noted down by Adm. Ackbar
+			addi $t0, $zero, 0x10
+			sw $t0, TRAP_SET($zero)
+			j END_IS_INTR
+	## Exception Handling: At this time, we simply skip the instruction that screwed up. Should do something more intelligent someday.
+	OTHER_EXCP:
+		lw $k0, ISR05($zero)
+		addi $k0, $k0, 0x4 # Skip offending instruction (ref: http://www.cs.uwm.edu/classes/cs315/Bacon/Lecture/HTML/ch15s10.html)
+		sw $k0, ISR05($zero)
+	END_IS_INTR:
 	jr $ra
 
 
