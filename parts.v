@@ -81,7 +81,7 @@ endmodule
 
 module dmem #(parameter wide = 8)
 (input clk, we, [31:0] a, [wide-1:0] d, output [wide-1:0] q);
-    reg [wide-1:0] ram [0:91000];
+    reg [wide-1:0] ram [0:1000];
     always @ (posedge clk) if (we) ram[a/4] <= d;
     assign q = ram[a/4];
 endmodule

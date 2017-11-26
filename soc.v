@@ -1,7 +1,7 @@
 
 
 
-module soc (input        clk450MHz, 
+module soc (input        sysclk_n, sysclk_p, 
 						 rst, 
 //				   [3:0] INT , 
 			output       uart_rx_out, 
@@ -15,6 +15,21 @@ module soc (input        clk450MHz,
 			input        btnl, 
 			       [7:0] switch
 	);
+
+	wire clk450MHz;
+    // IBUFDS: Differential Input Buffer
+    // 7 Series
+    // Xilinx HDL Libraries Guide, version 14.6
+    IBUFDS #(
+        .DIFF_TERM("FALSE"), // Differential Termination
+        .IBUF_LOW_PWR("TRUE"), // Low power="TRUE", Highest performance="FALSE"
+        .IOSTANDARD("DEFAULT") // Specify the input I/O standard
+        ) IBUFDS_inst (
+            .O(clk450MHz), // Buffer output
+            .I(sysclk_p), // Diff_p buffer input (connect directly to top-level port)
+            .IB(sysclk_n) // Diff_n buffer input (connect directly to top-level port)
+    );
+    // End of IBUFDS_inst instantiation   );
 
     wire clk_sec, clk_10MHz;
     
