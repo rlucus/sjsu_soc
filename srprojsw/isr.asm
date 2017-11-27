@@ -264,7 +264,7 @@ WHILE_SCHED_SLICE:
 
 ## Interrupt processor. This is called by the X180 handler!
 PROC_INTR_PROCESS:
-	sw $t0, ISRS3($zero) # N2: Save registers
+	sw $t0, ISRS3($zero) # Save $t0 to RAM, I need it
 
 	lw $k0, ISRI0($zero) # Load interrupt status to memory (Note: CP0/R13 no longer viable as interrupts reset)
 	addi $k1, $zero, 0x007C # N2: Mask out everything except exception code
@@ -350,7 +350,7 @@ PROC_INTR_PROCESS:
 		sw $k0, ISRS0($zero)
 	END_IS_INTR:
 
-	lw $t0, ISRS3($zero)
+	lw $t0, ISRS3($zero) # Restore $t0 from RAM
 	jr $ra
 
 
