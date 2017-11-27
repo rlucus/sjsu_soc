@@ -1,13 +1,14 @@
   .text
 schedInit:
-    addi   $fp,	$0,	0x7fff
+    addi   $fp,	$zero,	0x7fff
 
   #load base addresses into memory
-    addi   $k0,  $0, 0x7f00
+    addi   $k0,  $zero, 0x7f00
 
   beginFor:  
-    slti    $k1,	$k0,	7 # i < 7
-    beq     $k1,	$0,	endFor #break For Loop
+  	addi	$t0,	$zero, 	7
+    slti    $k1,	$k0,	$t0 # i < 7
+    beq     $k1,	$zero,	endFor #break For Loop
 
     #k0 =i
     addi $k1,  $sp,  $k0 #k1 = &task[i]
@@ -44,7 +45,7 @@ schedInit:
     sw      $k1,  0($k0)
 
     #jump sched
-    b       sched
+    beq $zero, $zero, sched
 
 
 sched:
