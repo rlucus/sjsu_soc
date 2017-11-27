@@ -25,12 +25,6 @@
 ###
 ###    ## Comment -> For this block, comment applies
 
-# Binary to Hex scratch space
-# 31   27   23   19     15   11   7    3  
-# 0000 0000 0000 0000 - 0000 0000 0000 0000
-# 0101 0000 0000 0000 - 1000 0100 0000 0001
-#    5    0    0    0      8    5    0    1
-
 	.macro append_intr_flag_mask(%reg)
 	# Basically this macro does this:
 	#sll %reg, %reg,  0x10
@@ -90,14 +84,16 @@ __INIT:
 	add $sp, $zero, $zero
 	add $fp, $zero, $zero
 	add $ra, $zero, $zero
+
 	addi $t0, $zero 0x1F3A # N7: memory I/O test instructions
-	sw $t0, ISR00($zero)
+	sw $t0, TEST_WORD($zero)
 	add $t1, $zero, $zero
-	lw $t1, ISR00($zero)
+	lw $t1, TEST_WORD($zero)
 	slt $t2, $t0, $t1
 	beq $t2, $zero, MEMIO_TEST_OK
-	j __HALT
+	j __HALT # Load/Store test failed, we're dead
 MEMIO_TEST_OK:
+
 	## Device Initialization
 	addi $t1, $zero, 0x5000 # N3: Enable interrupts, CP0, and CP2
 	append_intr_flag_mask($t1)
@@ -119,10 +115,10 @@ MEMIO_TEST_OK:
 	add $t2, $zero, $zero
 	## Start main, then halt if we somehow return out
 	jal __KMAIN
-	
 	j __HALT
 	
-		#nop # N(whatever): Padding instructions to align the ISR in the program to address 0x180
+
+		nop # N(whatever): Padding instructions to align the ISR in the program to address 0x180
 		nop # Note: Remove exactly one instruction for every instruction added above this comment!
 		nop
 		nop
@@ -163,40 +159,34 @@ MEMIO_TEST_OK:
 		nop
 		nop
 		nop
-		nop
 		
-##################################################### 
+###################################################### 
 # X180 Handler
 # 
 # Handles exceptions and interrupts asynchronously
-# sent by the CPU. Routes interrupts to appropriate
-# processing routines and (for now) stores other 
-# exceptions to memory location EXCP_CODE for OS
-# processing.
+# sent by the CPU then defers to interrupt processor.
 # 
 # Note: This routine must be positioned at ROM 
 #       address 0x180 per MIPS documentation.
-#####################################################
+# 
+# WARNING: This routine is exceptionally delicate!
+# Any registers that are touched must be stored in 
+# an ISR Shared location so that the scheduler can
+# capture valid process values instead of ISR garbage.
+######################################################
 
 __X180_HANDLER: ## Regs clobbered: K0
-	sw $ra, ISR00($zero) # N5: store the registers that I'm going to use to memory
-	sw $sp, ISR01($zero)
-	sw $k1, ISR02($zero)
-	sw $a0, ISR03($zero)
-	sw $t0, ISR04($zero)
-	
-	#sw $ra, 0x7FEF($zero)
-
 	mfc0 $k0, $14 # N2: Grab the address of the interrupted instruction to memory
-	sw $k0, ISR05($zero)
+	sw $k0, ISRS0($zero)
+	sw $ra, ISRS1($zero) # N2: store the registers that I'm going to use to memory
+	sw $k1, ISRS2($zero)
+	#sw $ra, 0x7FEF($zero)
 	
 	mfc0 $k0, $13 # N2: Grab the interrupt statuses to memory
-	sw $k0, ISR07($zero)
+	sw $k0, ISRI0($zero)
 
 	mfc0 $k0, $12 # N8: Acknowledge all interrupts and turn off master flag
-	sw $k0, ISR06($zero) # Store the register status
-
-	addi $k1, $zero, 0xFFF # N7: Acknowledge all interrupts and turn off master flag # xor $k0, $k0, 0x1
+	addi $k1, $zero, 0xFFF
 	sll $k1, $k1, 0xC
 	addi $k1, $k1, 0xF00
 	sll $k1, $k1, 0x8
@@ -207,23 +197,20 @@ __X180_HANDLER: ## Regs clobbered: K0
 	jal PROC_INTR_PROCESS
 
 	mfc0 $k1, $12
+	add $k0, $zero, $zero
 	append_intr_flag_mask($k0) # N2: Reset all interrupts
 	or $k1, $k0, $k1
 	mtc0 $k1, $12 # Set new register value
 
-	lw $t0, ISR04($zero)
-	lw $a0, ISR03($zero)
-	lw $k1, ISR02($zero)
-	lw $sp, ISR01($zero)
-	lw $ra, ISR00($zero) # N5: store the registers that I'm going to use to the stack
-	
-	lw $k0, ISR05($zero) # N2: return to whence we've interrupted
+	lw $k1, ISRS2($zero) # N2: restore the registers I used
+	lw $ra, ISRS1($zero)
+	lw $k0, ISRS0($zero) # N2: return to whence we've interrupted
 	jr $k0
 # End ISR
 
 
 		nop # N8: Padding instructions to separate ISR from main line code (not really needed, discard if space gets short)
-		nop
+		nop # Note: You need these if you see your code show up in X200!!!! You've been warned!!!!!
 		nop
 		nop
 		nop
@@ -267,16 +254,23 @@ WHILE_SCHED_SLICE:
 	jr $ra
 # End __KMAIN
 
+#################################################
+# Procedure: Interrupt Processor
+# 
+# Routes interrupts to appropriate processing 
+# routines and (for now) stores other exceptions 
+# to memory location EXCP_CODE for OS processing.
+#################################################
 
 ## Interrupt processor. This is called by the X180 handler!
 PROC_INTR_PROCESS:
-	push($k0)
-	push($k1)
-	lw $k0, ISR06($zero) # Load interrupt status to memory (Note: CP0/R13 no longer viable as interrupts reset)
+	sw $t0, ISRS3($zero) # N2: Save registers
+
+	lw $k0, ISRI0($zero) # Load interrupt status to memory (Note: CP0/R13 no longer viable as interrupts reset)
 	addi $k1, $zero, 0x007C # N2: Mask out everything except exception code
 	and  $k1, $k0, $k1
 	srl $k1, $k1, 0x2
-	sw  $k1, EXCP_CODE($zero)
+	sw  $k1, EXCP_CODE($zero) # Store it to memory
 	
 	beq $k1, $zero, IS_INTR # Would do a bne here, but not available in the arch, hence this skip-step if
 	j OTHER_EXCP
@@ -287,81 +281,76 @@ PROC_INTR_PROCESS:
 		and $k0, $k1, $k0
 		
 		addi $k1, $zero, 0x80 # N4: Case HWINTR5 (also for next few blocks for different interrupts)
-		add $a0, $zero, $k1
+		add $t0, $zero, $k1
 		and $k1, $k0, $k1
-		beq $k1, $a0, CASE_HWINTR5
+		beq $k1, $t0, CASE_HWINTR5
 		
 		addi $k1, $zero, 0x40
-		add $a0, $zero, $k1
+		add $t0, $zero, $k1
 		and $k1, $k0, $k1
-		beq $k1, $a0, CASE_HWINTR4
+		beq $k1, $t0, CASE_HWINTR4
 		
 		addi $k1, $zero, 0x20
-		add $a0, $zero, $k1
+		add $t0, $zero, $k1
 		and $k1, $k0, $k1
-		beq $k1, $a0, CASE_HWINTR3
+		beq $k1, $t0, CASE_HWINTR3
 		
 		addi $k1, $zero, 0x10
-		add $a0, $zero, $k1
+		add $t0, $zero, $k1
 		and $k1, $k0, $k1
-		beq $k1, $a0, CASE_HWINTR2
+		beq $k1, $t0, CASE_HWINTR2
 		
 		addi $k1, $zero, 0x08
-		add $a0, $zero, $k1
+		add $t0, $zero, $k1
 		and $k1, $k0, $k1
-		beq $k1, $a0, CASE_HWINTR1
+		beq $k1, $t0, CASE_HWINTR1
 		
 		addi $k1, $zero, 0x04
-		add $a0, $zero, $k1
+		add $t0, $zero, $k1
 		and $k1, $k0, $k1
-		beq $k1, $a0, CASE_HWINTR0 # TODO: Compare with zero incorrect, fix this (fixed)
+		beq $k1, $t0, CASE_HWINTR0 # TODO: Compare with zero incorrect, fix this (fixed)
 		
 		addi $k1, $zero, 0x02
-		add $a0, $zero, $k1
+		add $t0, $zero, $k1
 		and $k1, $k0, $k1
-		beq $k1, $a0, CASE_SWINTR1
+		beq $k1, $t0, CASE_SWINTR1
 		
 		addi $k1, $zero, 0x01
-		add $a0, $zero, $k1
+		add $t0, $zero, $k1
 		and $k1, $k0, $k1
-		beq $k1, $a0, CASE_SWINTR0
+		beq $k1, $t0, CASE_SWINTR0
 		
 		j END_IS_INTR
 		
 		CASE_HWINTR5: # Pet the timer then defer to the scheduler
 			mtc0 $zero, $22
 			j END_IS_INTR
-		CASE_HWINTR4:
-			addi $j0, $zero, 0x4
-			j STORE_OTHER # Hokey slide-through I know, eat me
+		CASE_HWINTR4: # Store A0 which corresponds to the fired interrupt
 		CASE_HWINTR3:
-			addi $t0, $zero, 0x3
-			j STORE_OTHER
 		CASE_HWINTR2:
-			addi $t0, $zero, 0x2
-			j STORE_OTHER
 		CASE_HWINTR1:
-			addi $t0, $zero, 0x1
-			STORE_OTHER:
 			sw $t0, OTHER_INTR($zero)
 			j END_IS_INTR # Hardware interrupts 1 through 4 ignored, simply note and reset them
 		CASE_HWINTR0:
-			addi $t0, $zero, 0x1 # Signal that AES is now complete
-			sw $t0, AES_DONE($zero)
+			sw $t0, AES_DONE($zero) # Signal that AES is now complete (make sure A0 has 1 in it!)
 			nop # Why did I put this here? I'll keep it for now . . .
 			j END_IS_INTR
 		CASE_SWINTR1:
 			addi $t0, $zero, 0x11
+			sw $t0, TRAP_SET($zero)
+			j END_IS_INTR
 		CASE_SWINTR0: # Any traps noted down by Adm. Ackbar
 			addi $t0, $zero, 0x10
 			sw $t0, TRAP_SET($zero)
 			j END_IS_INTR
 	## Exception Handling: At this time, we simply skip the instruction that screwed up. Should do something more intelligent someday.
 	OTHER_EXCP:
-		lw $k0, ISR05($zero)
+		lw $k0, ISRS0($zero)
 		addi $k0, $k0, 0x4 # Skip offending instruction (ref: http://www.cs.uwm.edu/classes/cs315/Bacon/Lecture/HTML/ch15s10.html)
-		sw $k0, ISR05($zero)
+		sw $k0, ISRS0($zero)
 	END_IS_INTR:
+
+	lw $t0, ISRS3($zero)
 	jr $ra
 
 
