@@ -333,6 +333,7 @@ PROC_INTR_PROCESS:
 __HALT:	# End of program
 	j __HALT
 
+
 __SCHEDULER_INIT:
     #addi   $fp,	$0,	0x7fff
 
@@ -590,16 +591,23 @@ __SCHEDULER:
 
   caseShedNextEnd:
 
-#TODO might not need whole section
+
 #determine if this is the initial run
 #k1 = statusReg, #k0 = PCB of next task
-  #addi $v0, $0, 1
-  #sll $v0, $v0, 14  #location of init bit in status register
-  #and $v0, $k1, $v0
- # beq $v0, $0 finishSchedUp
-  #TODO setup init maybe don't need...
+  addi $8, $0, 1
+  sll $8, $8, 14  #location of init bit in status register
+  and $31, $k1, $8
+  beq $31, $0 finishSchedUp
+
+  #clear first bit
+  addi $31, $0, 0xFFFF
+  xor $8, $8, $31 #inverse mask
+  and $k1, $8, $k1
+  sw $k1, SCHED_STATUS($0)
+  
   #place imem start address into 
-  #TODO clear init bit
+  addi $31, $0, iMEM_BASE_MASK 
+  sw $31, SCHEDS1($0)
 
   finishSchedUp:
 #load next task
@@ -632,7 +640,7 @@ __SCHEDULER:
     lw $24, PCB_T8_OFFSET($k0)
     lw $25, PCB_T9_OFFSET($k0)
   # lw $25, PCB_K0_OFFSET($k0)
-    lw $25, PCB_K1_OFFSET($k0)
+  # lw $25, PCB_K1_OFFSET($k0)
     lw $28, PCB_GP_OFFSET($k0)
     lw $29, PCB_SP_OFFSET($k0)
     lw $30, PCB_FP_OFFSET($k0)
@@ -669,6 +677,16 @@ loop: lw   $t3, 0($t0)      # Get value from array F[n]
 beq $zero, $zero, PROC_TASK_FIBONACCI # Keep running the task forever
 # End Task Fibonacci
 
+nop # N10: NOPs for sanity (or so I can find this task in the machine code)
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
 
 PROC_TASK_AES:
 	# Frame init
