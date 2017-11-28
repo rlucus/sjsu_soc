@@ -24,4 +24,5 @@ LOOP:	addi $s1, $s1, -1
 	j LOOP
 DONE:	addi $s0, $zero, LTRV
 	sw $s0, UART($0)
+	ori $t1, $zero, 3
 __HALT:	j __HALT

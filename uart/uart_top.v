@@ -1,7 +1,7 @@
 `timescale 1ns/1ps
 module uart_top(input RClk, input clk, input reset, input we, input [31:0] dataIn, address, output serial);
 
-wire write = ((we == 1'b1) && (address == 32'h0000_7EEF)) ? 1:0;
+wire write = ((we == 1'b1) && (address == 32'h0000_7000)) ? 1:0;
 wire [31:0] toUart;
 wire busy;
 wire Empty_out;
