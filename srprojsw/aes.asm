@@ -1,12 +1,3 @@
-.include "mmap_hw.asm"
-.include "data.asm"
-.eqv AES_GP 0x0000
-.eqv AES_FP 0x0080
-.eqv AES_SP 0x00B0
-
-.eqv sentence 0x0 # Keep the message in the phrase
-
-
 PROC_ENCR_AES:
 	# Frame init
 	addi $gp, $zero, AES_GP
@@ -23,7 +14,6 @@ PROC_ENCR_AES:
 	addi $t6, $zero, AES_KEY_HWORD6
 	addi $t7, $zero, AES_KEY_HWORD7
 	# TODO: Every time this is compiled, replace ANY MTC0 instruction with MTC2!!! Manually...
-	mtc0 $t0, $2
 	mtc0 $t1, $3
 	mtc0 $t2, $4
 	mtc0 $t3, $5
@@ -156,10 +146,80 @@ PROC_ENCR_AES:
 	addi $t1, $t1, 0x1
 
 	addi $s0, $fp, sentence # Set up a pointer to give to the AES
-	addi $s1, $zero, CRLF
-	sll $s1, $s1, 0xF # Set up a register that I can randomly print newline with
-	sw $s1, UART($zero)
-	sw $s1, UART($zero) # Write a couple newlines
+	addi $s1, $zero, 12 # Number of words to encrypt
+	addi $s2, $zero, CRLF
+	sll $s2, $s1, 0xF # Set up a register that I can randomly print newline with
+	sw $s2, UART($zero)
+	sw $s2, UART($zero) # Write a couple newlines
+
+	## Write out the intial data to the UART
+	add $t1, $zero, $s0 # Set up a pointer to start loading the phrase
+	addi $t2, $t1, 48 # End pointer is 48 bytes away
+	WRITE_OUT1:
+		lw $t3, 0x0($t1)
+		sw $t3, UART($zero)
+		addi $t1, $t1, 0x4
+		bne $t1, $t2, WRITE_OUT1
+
+	# CPU interface/status reg    // 31 , 30,      29,     28,   27-25, 24(RO), ..., 15:0
+	# [0] status                  // INT, go, 128/256, encDec, clkMult, hold  ,  0 , words of data
+	# Guessing that 1 encodes and 0 decodes.
+	mtc0 $s0, $1
+	addi $t1, $zero, 0x5 # Set encrypt at 256 bit mode
+	sll $t1, $t1, 0xF
+	add $t1, $t1, $s1
+	mtc0 $t1, $2
+	 
+	## DMA then starts, encryption starts and now we spin until AES is done
+	addi $t2, $zero, 0x1
+	SPINLOCK_1:
+		lw $t1, AES_DONE($zero)
+		bne $t1, $t2, SPINLOCK_1
+	sw $s2, UART($zero) # N2: Write to CRLFs
+	sw $s2, UART($zero)
+	sw $zero, AES_DONE($zero) # Reset AES done flag
+
+	## Write out the encrypted data to the UART
+	add $t1, $zero, $s0 # Set up a pointer to start loading the phrase
+	addi $t2, $t1, 48 # End pointer is 48 bytes away
+	WRITE_OUT2:
+		lw $t3, 0x0($t1)
+		sw $t3, UART($zero)
+		addi $t1, $t1, 0x4
+		bne $t1, $t2, WRITE_OUT2
+	sw $s2, UART($zero) # N2: Write to CRLFs
+	sw $s2, UART($zero)
+	sw $zero, UART($zero) # Write out a null terminator in case there is none
+
+	# CPU interface/status reg    // 31 , 30,      29,     28,   27-25, 24(RO), ..., 15:0
+	# [0] status                  // INT, go, 128/256, encDec, clkMult, hold  ,  0 , words of data
+	# Guessing that 1 encodes and 0 decodes.
+	mtc0 $s0, $1
+	addi $t1, $zero, 0x4 # Set decrypt at 256 bit mode
+	sll $t1, $t1, 0xF
+	add $t1, $t1, $s1
+	mtc0 $t1, $2
+	 
+	## DMA then starts, decryption starts and now we spin until AES is done
+	addi $t2, $zero, 0x1
+	SPINLOCK_2:
+		lw $t1, AES_DONE($zero)
+		bne $t1, $t2, SPINLOCK_2
+	sw $s2, UART($zero) # N2: Write to CRLFs
+	sw $s2, UART($zero)
+	sw $zero, AES_DONE($zero) # Reset AES done flag
+
+	## Write out the newly decrypted data to the UART
+	add $t1, $zero, $s0 # Set up a pointer to start loading the phrase
+	addi $t2, $t1, 48 # End pointer is 48 bytes away
+	WRITE_OUT3:
+		lw $t3, 0x0($t1)
+		sw $t3, UART($zero)
+		addi $t1, $t1, 0x4
+		bne $t1, $t2, WRITE_OUT3
+	sw $s2, UART($zero) # N2: Write to CRLFs
+	sw $s2, UART($zero)
+	sw $zero, UART($zero) # Write out a null terminator in case there is none
 	
 	beq $zero, $zero, PROC_ENCR_AES
 	jr $ra
