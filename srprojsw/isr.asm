@@ -220,37 +220,11 @@ __X180_HANDLER: ## Regs clobbered: K0
 
 	## Main Program Start
 __KMAIN:
-	# Disable the timer
-	addi $t0, $zero, 0xFF
-	sll $t0, $t0, 0x8
-	addi $t0, $t0, 0xFF
-	sll $t0, $t0, 0x8
-	addi $t0, $t0, 0xFF
-	sll $t0, $t0, 0x8
-	addi $t0, $t0, 0xFF
-	mtc0 $t0, $22
-	sw $zero, TEST_WORD($zero)
-	
-	addi $s0, $zero, 1 # Just a simple count by 5 to while away the time until I can properly implement this. Also tests memory manipulation.
-	addi $t1, $zero, 0x8
-WHILE_SCHED_SLICE:
-	# This is an example of how to do a single compare conditional
-	# If $s0 < $t1 then foo else bar
-	slt $t0, $s0, $t1
-	beq $t0, $zero, FOO
-	BAR:	# Else BAR
-		addi $s0, $s0, 0x1
-		beq $zero, $zero, END_FOO
-	FOO:	# Then FOO
-		lw $t1, TEST_WORD($zero)
-		add $t1, $s0, $t1
-		sw $t1, TEST_WORD($zero)
-		add $s0, $zero, $zero
-	END_FOO:
-	
-	beq $zero, $zero, WHILE_SCHED_SLICE
-	# Should not return out of main, but here for correctness:
-	jr $ra
+	jal sched
+	lw $k0, ISRS0($zero)
+	jr $k0
+
+	jr $ra # Shouldn't go here
 # End __KMAIN
 
 #################################################
@@ -323,6 +297,7 @@ PROC_INTR_PROCESS:
 		
 		CASE_HWINTR5: # Pet the timer then defer to the scheduler
 			mtc0 $zero, $22
+			jal __SCHEDULER
 			beq $zero, $zero, END_IS_INTR
 		CASE_HWINTR4: # Store A0 which corresponds to the fired interrupt
 		CASE_HWINTR3:
