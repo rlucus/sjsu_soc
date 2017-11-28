@@ -1,57 +1,86 @@
 .include "mm_marssim.asm"  #DEBUG remove after testing
 
+.eqv  SCHED_STATUS_INIT 0x6003
 
   .text
 __SCHEDULER_INIT:
-    #addi   $fp,	$0,	0x7fff
+    #set PC, RA to first address
+    addi $k1, $0, PCB_BASE0
+    addi $k0, $0, task0Start
+    sw $k0, PCB_PC_OFFSET($k1)
+    sw $k0, PCB_RA_OFFSET($k1)
+    addi $k0, $0, 0
+    #sll  $k0, $k0, 12
+    ori  $k0, $k0, dMEM_END_MASK
+    sw   $k0, PCB_FP_OFFSET($k1) # $fp = last addr in task
+    sw   $k0, PCB_SP_OFFSET($k1) # $sp = $fp
 
-  #load base addresses into memory
-    #addi   $k0,  $0, 0x7f00
+    addi $k1, $0, PCB_BASE1
+    addi $k0, $0, task1Start
+    sw $k0, PCB_PC_OFFSET($k1)
+    sw $k0, PCB_RA_OFFSET($k1)
+    addi $k0, $0, 1
+    sll  $k0, $k0, 12
+    ori  $k0, $k0, dMEM_END_MASK
+    sw   $k0, PCB_FP_OFFSET($k1)
+    sw   $k0, PCB_SP_OFFSET($k1)
 
-    add $k0, $0, $0 #i = 0
+    addi $k1, $0, PCB_BASE2
+    addi $k0, $0, task2Start
+    sw $k0, PCB_PC_OFFSET($k1)
+    sw $k0, PCB_RA_OFFSET($k1)
+    addi $k0, $0, 2
+    sll  $k0, $k0, 12
+    ori  $k0, $k0, dMEM_END_MASK
+    sw   $k0, PCB_FP_OFFSET($k1)
+    sw   $k0, PCB_SP_OFFSET($k1)
 
-  beginSIFor:  
-    slti    $k1,	$k0,	7 # i < 7
-    beq     $k1,	$0,	endSIFor #break For Loop
+    addi $k1, $0, PCB_BASE3
+    addi $k0, $0, task3Start
+    sw $k0, PCB_PC_OFFSET($k1)
+    sw $k0, PCB_RA_OFFSET($k1)
+    addi $k0, $0, 3
+    sll  $k0, $k0, 12
+    ori  $k0, $k0, dMEM_END_MASK
+    sw   $k0, PCB_FP_OFFSET($k1)
+    sw   $k0, PCB_SP_OFFSET($k1)
 
-    #k0 =i
-    addi $k1,  $0,  PCB_BASE0 
-    sll $v0,  $k0,  5
-    or  $v0, $v0, $k1 
+    addi $k1, $0, PCB_BASE4
+    addi $k0, $0, task4Start
+    sw $k0, PCB_PC_OFFSET($k1)
+    sw $k0, PCB_RA_OFFSET($k1)
+    addi $k0, $0, 4
+    sll  $k0, $k0, 12
+    ori  $k0, $k0, dMEM_END_MASK
+    sw   $k0, PCB_FP_OFFSET($k1)
+    sw   $k0, PCB_SP_OFFSET($k1)
 
-    #k1 = &task[i]
-    #lw $v0, 0($k1)
+    addi $k1, $0, PCB_BASE5
+    addi $k0, $0, task5Start
+    sw $k0, PCB_PC_OFFSET($k1)
+    sw $k0, PCB_RA_OFFSET($k1)
+    addi $k0, $0, 5
+    sll  $k0, $k0, 12
+    ori  $k0, $k0, dMEM_END_MASK
+    sw   $k0, PCB_FP_OFFSET($k1)
+    sw   $k0, PCB_SP_OFFSET($k1)
 
-    sll $v1, $k0, 8  
-    ori $v1, $v1, iMEM_BASE_MASK    #task[i] iMem baseAddr
-
-    sw $v1, PCB_PC_OFFSET($v0)          #pc
-    sw $v1, PCB_RA_OFFSET($v0)         #setup $ra = baseAddr 
-
-    sll $v1, $k0, 12  #task[i] dMem baseAddr
-    ori $v1, $v1, dMEM_END_MASK  
-    sw $v1, PCB_FP_OFFSET($v0)         # $fp = last addr in task
-    sw $v1, PCB_SP_OFFSET($v0)         # $sp = $fp
-
-    addi   $k0,	$k0,	1
-    j beginSIFor
-
-  endSIFor:
-    #setup cp0 to make scheduler simpler
-    addi    $k0,	 $0,	 0x1600 # should be first address of iMEM for task6
-    #mtc0    $k0,	 $14
-    sw $k0, ISRS0($0)
-    #addi $k1, $0, 0x7ee0  
+    addi $k1, $0, PCB_BASE6
+    addi $k0, $0, task6Start
+    sw $k0, PCB_PC_OFFSET($k1)
+    sw $k0, PCB_RA_OFFSET($k1)
+    sw $k0, ISRS0($0)  # should be first address of iMEM for task6
     sw $k0, ISRS1($0)  # this should be where INTR passes RA
-
-    #addi $k0, $0, 0x7f00 #TODO should be first address of task0???
-    #sw $k0, 0($k1)
-
+    addi $k0, $0, 6
+    sll  $k0, $k0, 12
+    ori  $k0, $k0, dMEM_END_MASK
+    sw   $k0, PCB_FP_OFFSET($k1)
+    sw   $k0, PCB_SP_OFFSET($k1)
 
     #set status register
-    addi   $k0,  $0, SCHED_STATUS    #  [xxxxxxxxx| 1 | 6543210 | 6543210 ]
-    addi   $k1,  $0, 0x6003    #  [unused  |init|currTask | validTask ]
-    sw      $k1,  SCHED_STATUS($0)
+    addi   $k0,  $0, SCHED_STATUS      # [xxxxxxxxx| 1 | 6543210 | 6543210 ]
+    addi   $k1,  $0, SCHED_STATUS_INIT # [unused  |init|currTask |validTask]
+    sw     $k1,  SCHED_STATUS($0)
 
     #jump sched
     j       __SCHEDULER   #DEBUG pick this line if using in test simulation
@@ -274,7 +303,7 @@ __SCHEDULER:
   sw $k1, SCHED_STATUS($0)
   
   #place imem start address into 
-  addi $31, $0, iMEM_BASE_MASK 
+  addi $31, $0, task0Start 
   sw $31, SCHEDS1($0)
 
   finishSchedUp:
