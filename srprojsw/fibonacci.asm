@@ -1,13 +1,10 @@
 ## TASK 1: Calculate Fibonacci numbers.
 # Compute first twelve Fibonacci numbers and put in array, then print
-      .data 0x1000
-fibs: .word   0 : 12        # "array" of 12 words to contain fib values
-size: .word  12             # size of "array" 
-      .text 0x1100
+.eqv	fibs	0x1000 # 12 words
+	.text
 PROC_CALC_FIBONACCI:
-      la   $t0, fibs        # load address of array
-      la   $t5, size        # load address of size variable
-      lw   $t5, 0($t5)      # load array size
+      addi $t0, $zero, fibs # load address of array
+      addi $t5, $zero, 12   # load array size
       addi $t2, $zero, 1    # 0 and 1 are the first and second Fib. numbers
       sw   $zero, 0($t0)    # F[0] = 0
       sw   $t2, 4($t0)      # F[1] = F[0] = 1
@@ -19,6 +16,7 @@ loop: lw   $t3, 0($t0)      # Get value from array F[n]
       addi $t0, $t0, 4      # increment address of Fib. number source
       addi $t1, $t1, -1     # decrement loop counter
       bne  $t1, $zero, loop # repeat if not finished yet.
+beq $zero, $zero, PROC_CALC_FIBONACCI # Keep running the task forever
 # End CalcFibonacci
 
 # Surplus stuff to use if we ever implement syscall:

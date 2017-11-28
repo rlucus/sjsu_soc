@@ -19,7 +19,7 @@
 	.eqv	ISRS2	0x7EE8 # $k1 - Kernel register
 	.eqv	ISRS3	0x7EEC # $t0 - Temporary register 0
 	
-		.eqv	PCB_PC_OFFSET	0
+	.eqv	PCB_PC_OFFSET	0
 	.eqv	PCB_AT_OFFSET	4
 	.eqv	PCB_V0_OFFSET	8
 	.eqv	PCB_V1_OFFSET	12
