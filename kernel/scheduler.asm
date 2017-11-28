@@ -7,11 +7,11 @@ schedInit:
 
   beginFor:  
   	addi	$t0,	$zero, 	7
-    slti    $k1,	$k0,	$t0 # i < 7
-    beq     $k1,	$zero,	endFor #break For Loop
+    slt		$k1,	$k0,	$t0 # i < 7
+    beq		$k1,	$zero,	endFor #break For Loop
 
     #k0 =i
-    addi $k1,  $sp,  $k0 #k1 = &task[i]
+    add $k1,  $sp,  $k0 #k1 = &task[i]
     lw $v0, 0($k1)
 
     sll $v1, $k0, 8  

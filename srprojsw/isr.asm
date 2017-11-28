@@ -180,7 +180,6 @@ __X180_HANDLER: ## Regs clobbered: K0
 	sw $k0, ISRS0($zero)
 	sw $ra, ISRS1($zero) # N2: store the registers that I'm going to use to memory
 	sw $k1, ISRS2($zero)
-	#sw $ra, 0x7FEF($zero)
 	
 	mfc0 $k0, $13 # N2: Grab the interrupt statuses to memory
 	sw $k0, ISRI0($zero)
@@ -241,7 +240,7 @@ WHILE_SCHED_SLICE:
 	beq $t0, $zero, FOO
 	BAR:	# Else BAR
 		addi $s0, $s0, 0x1
-		j END_FOO
+		beq $zero, $zero, END_FOO
 	FOO:	# Then FOO
 		lw $t1, TEST_WORD($zero)
 		add $t1, $s0, $t1
@@ -249,7 +248,7 @@ WHILE_SCHED_SLICE:
 		add $s0, $zero, $zero
 	END_FOO:
 	
-	j WHILE_SCHED_SLICE
+	beq $zero, $zero, WHILE_SCHED_SLICE
 	# Should not return out of main, but here for correctness:
 	jr $ra
 # End __KMAIN
@@ -273,7 +272,7 @@ PROC_INTR_PROCESS:
 	sw  $k1, EXCP_CODE($zero) # Store it to memory
 	
 	beq $k1, $zero, IS_INTR # Would do a bne here, but not available in the arch, hence this skip-step if
-	j OTHER_EXCP
+	beq $zero, $zero, OTHER_EXCP
 	IS_INTR:
 
 		srl $k0, $k0, 0x8 # N3: Look at the interrupt flags
@@ -320,29 +319,29 @@ PROC_INTR_PROCESS:
 		and $k1, $k0, $k1
 		beq $k1, $t0, CASE_SWINTR0
 		
-		j END_IS_INTR
+		beq $zero, $zero, END_IS_INTR
 		
 		CASE_HWINTR5: # Pet the timer then defer to the scheduler
 			mtc0 $zero, $22
-			j END_IS_INTR
+			beq $zero, $zero, END_IS_INTR
 		CASE_HWINTR4: # Store A0 which corresponds to the fired interrupt
 		CASE_HWINTR3:
 		CASE_HWINTR2:
 		CASE_HWINTR1:
 			sw $t0, OTHER_INTR($zero)
-			j END_IS_INTR # Hardware interrupts 1 through 4 ignored, simply note and reset them
+			beq $zero, $zero, END_IS_INTR # Hardware interrupts 1 through 4 ignored, simply note and reset them
 		CASE_HWINTR0:
 			sw $t0, AES_DONE($zero) # Signal that AES is now complete (make sure A0 has 1 in it!)
 			nop # Why did I put this here? I'll keep it for now . . .
-			j END_IS_INTR
+			beq $zero, $zero, END_IS_INTR
 		CASE_SWINTR1:
 			addi $t0, $zero, 0x11
 			sw $t0, TRAP_SET($zero)
-			j END_IS_INTR
+			beq $zero, $zero, END_IS_INTR
 		CASE_SWINTR0: # Any traps noted down by Adm. Ackbar
 			addi $t0, $zero, 0x10
 			sw $t0, TRAP_SET($zero)
-			j END_IS_INTR
+			beq $zero, $zero, END_IS_INTR
 	## Exception Handling: At this time, we simply skip the instruction that screwed up. Should do something more intelligent someday.
 	OTHER_EXCP:
 		lw $k0, ISRS0($zero)

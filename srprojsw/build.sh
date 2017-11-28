@@ -14,5 +14,6 @@ if [[ ! "$1" ]]; then
 fi
 
 HexText="$OUTDIR/`basename $1 | sed 's/asm$/mem/'`"
-mars nc np mc CompactTextAtZero a dump '.text' HexText $HexText $1
+# Remove np to allow pseudoinstructions
+mars nc mc CompactTextAtZero a dump '.text' HexText $HexText $1
 echo "Build finished, stored to: $HexText"
