@@ -301,7 +301,9 @@ PROC_INTR_PROCESS:
 		
 		CASE_HWINTR5: # Pet the timer then defer to the scheduler
 			mtc0 $zero, $22
+			sw $ra, ISRI2($zero)
 			jal __SCHEDULER
+			lw $ra, ISRI2($zero)
 			beq $zero, $zero, END_IS_INTR
 		CASE_HWINTR4: # Store A0 which corresponds to the fired interrupt
 		CASE_HWINTR3:
@@ -963,8 +965,6 @@ PROC_TASK_AES:
 	jr $ra
 ## End AES Task
 
-nop
-nop
 nop
 nop
 nop

@@ -62,6 +62,8 @@
 	# These locations are internal to the ISR and are
 	# off limits for other processes.
 	.eqv	ISRI0	0x7EC0 # Interrupt statuses
+	.eqv	ISRI1	0x7EC4 # Interrupt controls
+	.eqv	ISRI2	0x7EC8 # RA for PROC_INTR_PROCESS
 	
 	## Kernel Variable Locations
 	# Common kernel operating variables
