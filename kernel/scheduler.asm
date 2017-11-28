@@ -1,245 +1,263 @@
+.include "mm_marssim.asm"  #DEBUG remove after testing
+
+
   .text
-schedInit:
-    addi   $fp,	$zero,	0x7fff
+__SCHEDULER_INIT:
+    #addi   $fp,	$0,	0x7fff
 
   #load base addresses into memory
-    addi   $k0,  $zero, 0x7f00
+    #addi   $k0,  $0, 0x7f00
 
-  beginFor:  
-  	addi	$t0,	$zero, 	7
-    slt		$k1,	$k0,	$t0 # i < 7
-    beq		$k1,	$zero,	endFor #break For Loop
+    add $k0, $0, $0 #i = 0
+
+  beginSIFor:  
+    slti    $k1,	$k0,	7 # i < 7
+    beq     $k1,	$0,	endSIFor #break For Loop
 
     #k0 =i
-    add $k1,  $sp,  $k0 #k1 = &task[i]
-    lw $v0, 0($k1)
+    addi $k1,  $0,  PCB_BASE0 
+    sll $v0,  $k0,  5
+    or  $v0, $v0, $k1 
+
+    #k1 = &task[i]
+    #lw $v0, 0($k1)
 
     sll $v1, $k0, 8  
-    ori $v1, $v1, 0x1000    #task[i] iMem baseAddr
-    sw $v1, 1($v0)          #pc
-    sw $v1, 31($v0)         #setup $ra = baseAddr 
+    ori $v1, $v1, iMEM_BASE_MASK    #task[i] iMem baseAddr
+
+    sw $v1, PCB_PC_OFFSET($v0)          #pc
+    sw $v1, PCB_RA_OFFSET($v0)         #setup $ra = baseAddr 
 
     sll $v1, $k0, 12  #task[i] dMem baseAddr
-    ori $v1, $v1, 0x0FFF  
-    sw $v1, 30($v0)         # $fp = last addr in task
-    sw $v1, 29($v0)         # $sp = $fp
+    ori $v1, $v1, dMEM_END_MASK  
+    sw $v1, PCB_FP_OFFSET($v0)         # $fp = last addr in task
+    sw $v1, PCB_SP_OFFSET($v0)         # $sp = $fp
 
     addi   $k0,	$k0,	1
-    b       beginFor
+    j beginSIFor
 
-  endFor:
+  endSIFor:
     #setup cp0 to make scheduler simpler
     addi    $k0,	 $0,	 0x1600 # should be first address of iMEM for task6
-    mtc0    $k0,	 $14
-
-    addi $k1, $0, 0x7ee0  
-    sw $k0, 0($k1)  # this should be where INTR passes RA
+    #mtc0    $k0,	 $14
+    sw $k0, ISRS0($0)
+    #addi $k1, $0, 0x7ee0  
+    sw $k0, ISRS1($0)  # this should be where INTR passes RA
 
     #addi $k0, $0, 0x7f00 #TODO should be first address of task0???
     #sw $k0, 0($k1)
 
 
     #set status register
-    addi   $k0,  $0, 0x7fe0    #  [xxxxxxxxx| 1 | 6543210 | 6543210 ]
+    addi   $k0,  $0, SCHED_STATUS    #  [xxxxxxxxx| 1 | 6543210 | 6543210 ]
     addi   $k1,  $0, 0x6003    #  [unused  |init|currTask | validTask ]
-    sw      $k1,  0($k0)
+    sw      $k1,  SCHED_STATUS($0)
 
     #jump sched
-    beq $zero, $zero, sched
+    j       __SCHEDULER   #DEBUG pick this line if using in test simulation
+    #jr  $ra        #DEBUG pick this line if using in BootLoader
 
-
-sched:
-#TODO: check the return address location
+#DEBUG This section can be placed independent of the upper section in memory.
+__SCHEDULER:
 #
 #
-    sw $ra, 0x7ff0($0) #save current RA to 0x7ff0
-    sw $k1, 0x7ff1($0)
-    sw $a0, 0x7ff2($0)
-    sw $t0, 0x7ff3($0)
+#
+    sw $ra, SCHEDS1($0) #save current RA to 0x7ff0
+    sw $k1, SCHEDS2($0)
+    #sw $a0, 0x7ff2($0)
+    sw $t0, SCHEDS3($0)
 
-    addi $k1,  $0, 0x7fe0 #working space
-    sw $k0, 1($k1)
-    sw $v0, 2($k1)
-    sw $v1, 3($k1)
-    lw $v0, 0($k1) #load status register
+    addi $k0,  $0, SCHED_STATUS
+    #sw $k0, 1($k0)
+    #sw $v0, 2($k0)
+    #sw $v1, 3($k0)
+    #lw $v0, 0($k0) #load status register
+    lw $31, 0($k0) #load status register
 
     #mask the status register to find the current task
-    addi $v1, $0, 1
-    sll $v1, $v1, 7
+    #addi $v1, $0, 1
+    addi $8, $0, 1
+    sll $8, $8, 7
 
-    and $k0, $v0, $v1
-    bne $k0, $0, caseTask0  #if (mask & statusReg != 0)
+    and $k0, $31, $8
+    bne $k0, $0, caseShedTask0  #if (mask & statusReg != 0)
 
-    sll $v1, $v1, 1
-    and $k0, $v0, $v1
-    bne $k0, $0, caseTask1    
+    sll $8, $8, 1
+    and $k0, $31, $8
+    bne $k0, $0, caseShedTask1    
 
-    sll $v1, $v1, 1
-    and $k0, $v0, $v1
-    bne $k0, $0, caseTask2  
+    sll $8, $8, 1
+    and $k0, $31, $8
+    bne $k0, $0, caseShedTask2  
 
-    sll $v1, $v1, 1
-    and $k0, $v0, $v1
-    bne $k0, $0, caseTask3  
+    sll $8, $8, 1
+    and $k0, $31, $8
+    bne $k0, $0, caseShedTask3  
 
-    sll $v1, $v1, 1
-    and $k0, $v0, $v1
-    bne $k0, $0, caseTask4  
+    sll $8, $8, 1
+    and $k0, $31, $8
+    bne $k0, $0, caseShedTask4  
 
-    sll $v1, $v1, 1
-    and $k0, $v0, $v1
-    bne $k0, $0, caseTask5
+    sll $8, $8, 1
+    and $k0, $31, $8
+    bne $k0, $0, caseShedTask5
 
-    sll $v1, $v1, 1
-    and $k0, $v0, $v1
-    bne $k0, $0, caseTask6
+    sll $8, $8, 1
+    and $k0, $31, $8
+    bne $k0, $0, caseShedTask6
 
 
   # set k0 to base address of PCB for current task
-  caseTask0:
-    addi $k0, $0, 0x7f00
-    b caseTaskEnd
-  caseTask1:
-    addi $k0, $0, 0x7f20
-    b caseTaskEnd
-  caseTask2:
-    addi $k0, $0, 0x7f40
-    b caseTaskEnd
-  caseTask3:
-    addi $k0, $0, 0x7f60
-    b caseTaskEnd
-  caseTask4:
-    addi $k0, $0, 0x7f80
-    b caseTaskEnd
-  caseTask5:
-    addi $k0, $0, 0x7fA0
-    b caseTaskEnd
-  caseTask6:
-    addi $k0, $0, 0x7fC0
+  caseShedTask0:
+    addi $k0, $0, PCB_BASE0
+    b caseShedTaskEnd
+  caseShedTask1:
+    addi $k0, $0, PCB_BASE1
+    b caseShedTaskEnd
+  caseShedTask2:
+    addi $k0, $0, PCB_BASE2
+    b caseShedTaskEnd
+  caseShedTask3:
+    addi $k0, $0, PCB_BASE3
+    b caseShedTaskEnd
+  caseShedTask4:
+    addi $k0, $0, PCB_BASE4
+    b caseShedTaskEnd
+  caseShedTask5:
+    addi $k0, $0, PCB_BASE5
+    b caseShedTaskEnd
+  caseShedTask6:
+    addi $k0, $0, PCB_BASE6
 
-  caseTaskEnd:
-    srl $v1, $v1, 8   #8 because I want it to be 0 if task0 is running
-    sw $v1, 5($k1)    #set aside current running task number for later
+  caseShedTaskEnd:
+    srl $8, $8, 8   #8 because I want it to be 0 if task0 is running
+    addi $k1, $0, SCHED_STATUS
+    sw $8, 4($k1)    #set aside current running task number for later
 
     # save all the registers into the PCB
 
-    lw $ra, 0x7ee0($0) #retrieve passed RA from memory 0x7ee0 INTR passes here
-    lw $a0, 0x7ee2($0)
-    lw $t0, 0x7ee3($0)
 
-    mfc0 $v1, $14
-    sw $v1, 0($k0) #PC saved into register 0 spot... 
-    lw $v0, 2($k1)#recover clobbered regs from memory and load them first
-    lw $v1, 3($k1)
 
-    #normal from here
-    sw $1, 1($k0)
-    sw $2, 2($k0)
-    sw $3, 3($k0) 
-    sw $4, 4($k0)
-    sw $5, 5($k0)
-    sw $6, 6($k0)
-    sw $7, 7($k0)
-    sw $8, 8($k0)
-    sw $9, 9($k0)
-    sw $10, 10($k0)
-    sw $11, 11($k0)
-    sw $12, 12($k0)
-    sw $13, 13($k0)
-    sw $14, 14($k0)
-    sw $15, 15($k0)
-    sw $16, 16($k0)
-    sw $17, 17($k0)
-    sw $18, 18($k0)
-    sw $19, 19($k0)
-    sw $20, 20($k0)
-    sw $21, 21($k0)
-    sw $22, 22($k0)
-    sw $23, 23($k0)
-    sw $24, 24($k0)
-    sw $25, 25($k0) #skip 26,27 because they are kernal registers only
-    sw $28, 28($k0)
-    sw $29, 29($k0)
-    sw $30, 30($k0)
-    sw $31, 31($k0)
+    #mfc0 $v1, $14
+    lw $8, ISRS0($0)
+    sw $8, PCB_PC_OFFSET($k0) #PC saved into register 0 spot... 
+    
+    #lw $v0, PCB_V0_OFFSET($0)#recover clobbered regs from memory and load them first
+    #lw $v1, PCB_V1_OFFSET($0)
+    lw $ra, ISRS1($0) #retrieve passed RA from memory 0x7ee0 INTR passes here
+    #lw $a0, ISRS2($0)
+    lw $t0, ISRS3($0)
+    #normal from here ($k0)
+
+    sw $1,  PCB_AT_OFFSET($k0)
+    sw $2,  PCB_V0_OFFSET($k0)
+    sw $3,  PCB_V1_OFFSET($k0) 
+    sw $4,  PCB_A0_OFFSET($k0)
+    sw $5,  PCB_A1_OFFSET($k0)
+    sw $6,  PCB_A2_OFFSET($k0)
+    sw $7,  PCB_A3_OFFSET($k0)
+    sw $8,  PCB_T0_OFFSET($k0)
+    sw $9,  PCB_T1_OFFSET($k0)
+    sw $10, PCB_T2_OFFSET($k0)
+    sw $11, PCB_T3_OFFSET($k0)
+    sw $12, PCB_T4_OFFSET($k0)
+    sw $13, PCB_T5_OFFSET($k0)
+    sw $14, PCB_T6_OFFSET($k0)
+    sw $15, PCB_T7_OFFSET($k0)
+    sw $16, PCB_S0_OFFSET($k0)
+    sw $17, PCB_S1_OFFSET($k0)
+    sw $18, PCB_S2_OFFSET($k0)
+    sw $19, PCB_S3_OFFSET($k0)
+    sw $20, PCB_S4_OFFSET($k0)
+    sw $21, PCB_S5_OFFSET($k0)
+    sw $22, PCB_S6_OFFSET($k0)
+    sw $23, PCB_S7_OFFSET($k0)
+    sw $24, PCB_T8_OFFSET($k0)
+    sw $25, PCB_T9_OFFSET($k0) 
+   #sw $26, PCB_K0_OFFSET($k0)
+   #sw $27, PCB_K1_OFFSET($k0)
+    sw $28, PCB_GP_OFFSET($k0)
+    sw $29, PCB_SP_OFFSET($k0)
+    sw $30, PCB_FP_OFFSET($k0)
+    sw $31, PCB_RA_OFFSET($k0)
 
 
 
   #figure out next task
-  addi $k1, $0, 0x7fe0
-  lw $k0, 5($k1)  #last task
+  addi $k1, $0, SCHED_STATUS
+  lw $k0, 4($k1)  #last task
   lw $k1, 0($k1)  #status register
 
-  beq $k0, $0, caseLast0
+  beq $k0, $0, caseShedLast0
   srl $k0, $k0, 1
-  beq $k0, $0, caseLast1
+  beq $k0, $0, caseShedLast1
   srl $k0, $k0, 1
-  beq $k0, $0, caseLast2
+  beq $k0, $0, caseShedLast2
   srl $k0, $k0, 1
-  beq $k0, $0, caseLast3
+  beq $k0, $0, caseShedLast3
   srl $k0, $k0, 1
-  beq $k0, $0, caseLast4
+  beq $k0, $0, caseShedLast4
   srl $k0, $k0, 1
-  beq $k0, $0, caseLast5
+  beq $k0, $0, caseShedLast5
   srl $k0, $k0, 1
-  beq $k0, $0, caseLast6
+  beq $k0, $0, caseShedLast6
 
 
-  caseLast0: #if (last=0 && 1.isValid) then next = 1 else keep going
+  caseShedLast0: #if (last=0 && 1.isValid) then next = 1 else keep going
     addi $k0, $0, 2
     and $k0, $k0, $k1
-    bne $k0, $0, caseNext1
-  caseLast1:
+    bne $k0, $0, caseShedNext1
+  caseShedLast1:
     addi $k0, $0, 4    #2^next
     and $k0, $k0, $k1
-    bne $k0, $0, caseNext2
-  caseLast2:
+    bne $k0, $0, caseShedNext2
+  caseShedLast2:
     addi $k0, $0, 8
     and $k0, $k0, $k1
-    bne $k0, $0, caseNext3
-  caseLast3:
+    bne $k0, $0, caseShedNext3
+  caseShedLast3:
     addi $k0, $0, 16
     and $k0, $k0, $k1
-    bne $k0, $0, caseNext4
-  caseLast4:
+    bne $k0, $0, caseShedNext4
+  caseShedLast4:
     addi $k0, $0, 32
     and $k0, $k0, $k1
-    bne $k0, $0, caseNext5
-  caseLast5:
+    bne $k0, $0, caseShedNext5
+  caseShedLast5:
     addi $k0, $0, 64
     and $k0, $k0, $k1
-    bne $k0, $0, caseNext6
-  caseLast6:
+    bne $k0, $0, caseShedNext6
+  caseShedLast6:
     addi $k0, $0, 1
     and $k0, $k0, $k1
-    bne $k0, $0, caseNext0
+    bne $k0, $0, caseShedNext0
 
-  b caseLast0 #circular list
+  b caseShedLast0 #circular list
 
 
 #setup loading next task
-  caseNext0:
-    addi $k0, $0, 0x7f00
-    b caseNextEnd
-  caseNext1:
-    addi $k0, $0, 0x7f20
-    b caseNextEnd
-  caseNext2:
-    addi $k0, $0, 0x7f40
-    b caseNextEnd
-  caseNext3:
-    addi $k0, $0, 0x7f60
-    b caseNextEnd
-  caseNext4:
-    addi $k0, $0, 0x7f80
-    b caseNextEnd
-  caseNext5:
-    addi $k0, $0, 0x7fA0
-    b caseNextEnd
-  caseNext6:
-    addi $k0, $0, 0x7fC0
+  caseShedNext0:
+    addi $k0, $0, PCB_BASE0
+    b caseShedNextEnd
+  caseShedNext1:
+    addi $k0, $0, PCB_BASE1
+    b caseShedNextEnd
+  caseShedNext2:
+    addi $k0, $0, PCB_BASE2
+    b caseShedNextEnd
+  caseShedNext3:
+    addi $k0, $0, PCB_BASE3
+    b caseShedNextEnd
+  caseShedNext4:
+    addi $k0, $0, PCB_BASE4
+    b caseShedNextEnd
+  caseShedNext5:
+    addi $k0, $0, PCB_BASE5
+    b caseShedNextEnd
+  caseShedNext6:
+    addi $k0, $0, PCB_BASE6
 
-  caseNextEnd:
+  caseShedNextEnd:
 
 #TODO might not need whole section
 #determine if this is the initial run
@@ -247,54 +265,55 @@ sched:
   #addi $v0, $0, 1
   #sll $v0, $v0, 14  #location of init bit in status register
   #and $v0, $k1, $v0
- # beq $v0, $0 finishUp
+ # beq $v0, $0 finishSchedUp
   #TODO setup init maybe don't need...
   #place imem start address into 
   #TODO clear init bit
 
-  finishUp:
+  finishSchedUp:
 #load next task
-    lw $k1, 0($k0)
-    mtc0 $k1, $14 #PC goes into cp0
+    lw $k1, PCB_PC_OFFSET($k0)
+   #mtc0 $k1, $14 #PC goes into cp0    
+    sw $k1, ISRS0($0)
+    lw $1,  PCB_AT_OFFSET($k0)
+    lw $2,  PCB_V0_OFFSET($k0)
+    lw $3,  PCB_V1_OFFSET($k0)
+    lw $4,  PCB_A0_OFFSET($k0)
+    lw $5,  PCB_A1_OFFSET($k0)
+    lw $6,  PCB_A2_OFFSET($k0)
+    lw $7,  PCB_A3_OFFSET($k0)
+    lw $8,  PCB_T0_OFFSET($k0)
+    lw $9,  PCB_T1_OFFSET($k0)
+    lw $10, PCB_T2_OFFSET($k0)
+    lw $11, PCB_T3_OFFSET($k0)
+    lw $12, PCB_T4_OFFSET($k0)
+    lw $13, PCB_T5_OFFSET($k0)
+    lw $14, PCB_T6_OFFSET($k0)
+    lw $15, PCB_T7_OFFSET($k0)
+    lw $16, PCB_S0_OFFSET($k0)
+    lw $17, PCB_S1_OFFSET($k0)
+    lw $18, PCB_S2_OFFSET($k0)
+    lw $19, PCB_S3_OFFSET($k0)
+    lw $20, PCB_S4_OFFSET($k0)
+    lw $21, PCB_S5_OFFSET($k0)
+    lw $22, PCB_S6_OFFSET($k0)
+    lw $23, PCB_S7_OFFSET($k0)
+    lw $24, PCB_T8_OFFSET($k0)
+    lw $25, PCB_T9_OFFSET($k0)
+  # lw $25, PCB_K0_OFFSET($k0)
+  # lw $25, PCB_K1_OFFSET($k0)
+    lw $28, PCB_GP_OFFSET($k0)
+    lw $29, PCB_SP_OFFSET($k0)
+    lw $30, PCB_FP_OFFSET($k0)
 
-    lw $1, 1($k0)
-    lw $2, 2($k0)
-    lw $3, 3($k0)
-    lw $4, 4($k0)
-    lw $5, 5($k0)
-    lw $6, 6($k0)
-    lw $7, 7($k0)
-    lw $8, 8($k0)
-    lw $9, 9($k0)
-    lw $10, 10($k0)
-    lw $11, 11($k0)
-    lw $12, 12($k0)
-    lw $13, 13($k0)
-    lw $14, 14($k0)
-    lw $15, 15($k0)
-    lw $16, 16($k0)
-    lw $17, 17($k0)
-    lw $18, 18($k0)
-    lw $19, 19($k0)
-    lw $20, 20($k0)
-    lw $21, 21($k0)
-    lw $22, 22($k0)
-    lw $23, 23($k0)
-    lw $24, 24($k0)
-    lw $25, 25($k0)
-    lw $28, 28($k0)
-    lw $29, 29($k0)
-    lw $30, 30($k0)
+    #ra, t0 comes from PCB and goes into 0x7ee0
+    lw $31, PCB_RA_OFFSET($k0)
+    sw $31, ISRS1($0)
+    #sw $27,  ISRS2($0)
+    sw $8,  ISRS3($0)
 
-    #ra, a0, t0 comes from PCB and goes into 0x7ee0
-    lw $31, 31($k0)
-    sw $31, 0x7ee0($0)
-    sw $4,  0x7ee2($0)
-    sw $8,  0x7ee3($0)
-
-    lw $ra, 0x7ff0($0) #retrieve regs from beggining
-    lw $k1, 0x7ff1($0)
-    lw $a0, 0x7ff2($0)
-    lw $t0, 0x7ff3($0)
+    lw $ra, SCHEDS1($0) #retrieve regs from beggining
+    lw $k1, SCHEDS2($0)
+    lw $t0, SCHEDS3($0)
 
   jr $ra
