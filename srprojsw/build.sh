@@ -13,7 +13,10 @@ if [[ ! "$1" ]]; then
 	exit 2
 fi
 
-HexText="$OUTDIR/`basename $1 | sed 's/asm$/mem/'`"
+HexText="`basename $1 | sed 's/asm$/mem/'`"
 # Remove np to allow pseudoinstructions
 mars nc mc CompactTextAtZero a dump '.text' HexText $HexText $1
+if [ -d $OUTDIR ]; then
+	cp $HexText $OUTDIR
+fi
 echo "Build finished, stored to: $HexText"

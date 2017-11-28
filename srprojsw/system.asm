@@ -686,6 +686,7 @@ PROC_TASK_AES:
 	addi $t6, $zero, AES_KEY_HWORD6
 	addi $t7, $zero, AES_KEY_HWORD7
 	# TODO: Every time this is compiled, replace ANY MTC0 instruction with MTC2!!! Manually...
+	mtc0 $t0, $2
 	mtc0 $t1, $3
 	mtc0 $t2, $4
 	mtc0 $t3, $5
@@ -840,7 +841,7 @@ PROC_TASK_AES:
 	addi $t1, $zero, 0x5 # Set encrypt at 256 bit mode
 	sll $t1, $t1, 0xF
 	add $t1, $t1, $s1
-	mtc0 $t1, $2
+	mtc0 $t1, $0
 	 
 	## DMA then starts, encryption starts and now we spin until AES is done
 	addi $t2, $zero, 0x1
@@ -870,7 +871,7 @@ PROC_TASK_AES:
 	addi $t1, $zero, 0x4 # Set decrypt at 256 bit mode
 	sll $t1, $t1, 0xF
 	add $t1, $t1, $s1
-	mtc0 $t1, $2
+	mtc0 $t1, $0
 	 
 	## DMA then starts, decryption starts and now we spin until AES is done
 	addi $t2, $zero, 0x1
