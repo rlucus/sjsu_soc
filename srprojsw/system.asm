@@ -25,145 +25,145 @@
 ###
 ###    ## Comment -> For this block, comment applies
 
-	.macro append_intr_flag_mask(%reg)
-	# Basically this macro does this:
-	#sll %reg, %reg,  0x10
-	#addi %reg, %reg, 0x8501
-	# This also holds the processor in kernel mode and normal level (see KSU, ERL, and EXL)
-	sll %reg, %reg, 0x8
-	addi %reg, %reg, 0x95 # Enable interrupts 5, 2, and 0
-	sll %reg, %reg, 0x8
-	addi %reg, %reg, 0x01 # Enable master interrupt flag and sets KSU, ERL, and EXL
-	.end_macro 
-	
-	.macro push(%reg)
-	addi $sp, $sp, -0x4
-	sw %reg, 0x0($sp)
-	.end_macro
-	
-	.macro pop(%reg)
-	lw %reg, 0x0($sp)
-	addi $sp, $sp, 0x4
-	.end_macro
-	
-	.eqv	NTICKS	0x400 # Number of ticks until the timer interrupt fires
-										# [xxxxxxxxx| 1 | 6543210 | 6543210 ]
-	.eqv	SCHED_STATUS_INIT 0x6003	# [unused  |init|currTask |validTask]
-	
-	## Data Section
-	# Note: Uncomment the include for the assembler file that 
-	# corresponds to the environment you're running in.
-	.include "mmap_hw.asm" # Memorpy map for the hardware
-	.include "data.asm"
-	#.include "mmap_sim.asm" # Memory map for MARS
-	
-	.text # Starting off at 0x0000_0000
+    .macro append_intr_flag_mask(%reg)
+    # Basically this macro does this:
+    #sll %reg, %reg,  0x10
+    #addi %reg, %reg, 0x8501
+    # This also holds the processor in kernel mode and normal level (see KSU, ERL, and EXL)
+    sll %reg, %reg, 0x8
+    addi %reg, %reg, 0x95 # Enable interrupts 5, 2, and 0
+    sll %reg, %reg, 0x8
+    addi %reg, %reg, 0x01 # Enable master interrupt flag and sets KSU, ERL, and EXL
+    .end_macro 
+    
+    .macro push(%reg)
+    addi $sp, $sp, -0x4
+    sw %reg, 0x0($sp)
+    .end_macro
+    
+    .macro pop(%reg)
+    lw %reg, 0x0($sp)
+    addi $sp, $sp, 0x4
+    .end_macro
+    
+    .eqv    NTICKS    0x400 # Number of ticks until the timer interrupt fires
+                                        # [xxxxxxxxx| 1 | 6543210 | 6543210 ]
+    .eqv    SCHED_STATUS_INIT 0x6003    # [unused  |init|currTask |validTask]
+    
+    ## Data Section
+    # Note: Uncomment the include for the assembler file that 
+    # corresponds to the environment you're running in.
+    .include "mmap_hw.asm" # Memorpy map for the hardware
+    .include "data.asm"
+    #.include "mmap_sim.asm" # Memory map for MARS
+    
+    .text # Starting off at 0x0000_0000
 __INIT:
-	add $at, $zero, $zero # N29: Initialize all the registers to zero (solves weird bugs that came up in the hardware simulator)
-	add $v0, $zero, $zero # Note: T0, T1, and T2 initialized after memory test routine because they're used in the test
-	add $v1, $zero, $zero
-	add $a0, $zero, $zero
-	add $a1, $zero, $zero
-	add $a2, $zero, $zero
-	add $a3, $zero, $zero
-	add $t3, $zero, $zero
-	add $t4, $zero, $zero
-	add $t5, $zero, $zero
-	add $t6, $zero, $zero
-	add $t7, $zero, $zero
-	add $s0, $zero, $zero
-	add $s1, $zero, $zero
-	add $s2, $zero, $zero
-	add $s3, $zero, $zero
-	add $s4, $zero, $zero
-	add $s5, $zero, $zero
-	add $s6, $zero, $zero
-	add $s7, $zero, $zero
-	add $t8, $zero, $zero
-	add $t9, $zero, $zero
-	add $k0, $zero, $zero
-	add $k1, $zero, $zero
-	add $gp, $zero, $zero
-	add $sp, $zero, $zero
-	add $fp, $zero, $zero
-	add $ra, $zero, $zero
+    add $at, $zero, $zero # N29: Initialize all the registers to zero (solves weird bugs that came up in the hardware simulator)
+    add $v0, $zero, $zero # Note: T0, T1, and T2 initialized after memory test routine because they're used in the test
+    add $v1, $zero, $zero
+    add $a0, $zero, $zero
+    add $a1, $zero, $zero
+    add $a2, $zero, $zero
+    add $a3, $zero, $zero
+    add $t3, $zero, $zero
+    add $t4, $zero, $zero
+    add $t5, $zero, $zero
+    add $t6, $zero, $zero
+    add $t7, $zero, $zero
+    add $s0, $zero, $zero
+    add $s1, $zero, $zero
+    add $s2, $zero, $zero
+    add $s3, $zero, $zero
+    add $s4, $zero, $zero
+    add $s5, $zero, $zero
+    add $s6, $zero, $zero
+    add $s7, $zero, $zero
+    add $t8, $zero, $zero
+    add $t9, $zero, $zero
+    add $k0, $zero, $zero
+    add $k1, $zero, $zero
+    add $gp, $zero, $zero
+    add $sp, $zero, $zero
+    add $fp, $zero, $zero
+    add $ra, $zero, $zero
 
-	addi $t0, $zero 0x1F3A # N7: memory I/O test instructions
-	sw $t0, TEST_WORD($zero)
-	add $t1, $zero, $zero
-	lw $t1, TEST_WORD($zero)
-	slt $t2, $t0, $t1
-	beq $t2, $zero, MEMIO_TEST_OK
-	j __HALT # Load/Store test failed, we're dead
+    addi $t0, $zero 0x1F3A # N7: memory I/O test instructions
+    sw $t0, TEST_WORD($zero)
+    add $t1, $zero, $zero
+    lw $t1, TEST_WORD($zero)
+    slt $t2, $t0, $t1
+    beq $t2, $zero, MEMIO_TEST_OK
+    j __HALT # Load/Store test failed, we're dead
 MEMIO_TEST_OK:
 
-	## Device Initialization
-	addi $t1, $zero, 0x5000 # N3: Enable interrupts, CP0, and CP2
-	append_intr_flag_mask($t1)
-	mtc0 $zero, $12 # BUG FIX: CP0/R12 not zeroing correctly
-	mtc0 $t1, $12
-	mtc0 $zero, $13 # N2: Init the other registers to zero
-	mtc0 $zero, $14
-	
-	addi $sp, $zero, 0x3F # N3: Initialize the stack pointer
-	sll $sp, $sp, 0x8
-	addi $sp, $sp, 0xFC
-	
-	addi $t0, $zero, NTICKS # N3: Initialize the timer
-	mtc0 $zero, $22
-	mtc0 $t0, $23
-	
-	add $t0, $zero, $zero # N3: Zero out T0, T1, and T2 after memory test OK and device initialization is complete
-	add $t1, $zero, $zero
-	add $t2, $zero, $zero
-	## Start main, then halt if we somehow return out
-	jal __SCHEDULER_INIT
-	jal __KMAIN
-	j __HALT
-	
+    ## Device Initialization
+    addi $t1, $zero, 0x5000 # N3: Enable interrupts, CP0, and CP2
+    append_intr_flag_mask($t1)
+    mtc0 $zero, $12 # BUG FIX: CP0/R12 not zeroing correctly
+    mtc0 $t1, $12
+    mtc0 $zero, $13 # N2: Init the other registers to zero
+    mtc0 $zero, $14
+    
+    addi $sp, $zero, 0x3F # N3: Initialize the stack pointer
+    sll $sp, $sp, 0x8
+    addi $sp, $sp, 0xFC
+    
+    addi $t0, $zero, NTICKS # N3: Initialize the timer
+    mtc0 $zero, $22
+    mtc0 $t0, $23
+    
+    add $t0, $zero, $zero # N3: Zero out T0, T1, and T2 after memory test OK and device initialization is complete
+    add $t1, $zero, $zero
+    add $t2, $zero, $zero
+    ## Start main, then halt if we somehow return out
+    jal __SCHEDULER_INIT
+    jal __KMAIN
+    j __HALT
+    
 
-		nop # N(whatever): Padding instructions to align the ISR in the program to address 0x180
-		nop # Note: Remove exactly one instruction for every instruction added above this comment!
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		
+        nop # N(whatever): Padding instructions to align the ISR in the program to address 0x180
+        nop # Note: Remove exactly one instruction for every instruction added above this comment!
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
+        
 ###################################################### 
 # X180 Handler
 # 
@@ -180,55 +180,55 @@ MEMIO_TEST_OK:
 ######################################################
 
 __X180_HANDLER: ## Regs clobbered: K0
-	mfc0 $k0, $14 # N2: Grab the address of the interrupted instruction to memory
-	sw $k0, ISRS0($zero)
-	sw $ra, ISRS1($zero) # N2: store the registers that I'm going to use to memory
-	sw $k1, ISRS2($zero)
-	
-	mfc0 $k0, $13 # N2: Grab the interrupt statuses to memory
-	sw $k0, ISRI0($zero)
+    mfc0 $k0, $14 # N2: Grab the address of the interrupted instruction to memory
+    sw $k0, ISRS0($zero)
+    sw $ra, ISRS1($zero) # N2: store the registers that I'm going to use to memory
+    sw $k1, ISRS2($zero)
+    
+    mfc0 $k0, $13 # N2: Grab the interrupt statuses to memory
+    sw $k0, ISRI0($zero)
 
-	mfc0 $k0, $12 # N8: Acknowledge all interrupts and turn off master flag
-	addi $k1, $zero, 0xFFF
-	sll $k1, $k1, 0xC
-	addi $k1, $k1, 0xF00
-	sll $k1, $k1, 0x8
-	addi $k1, $k1, 0xFE
-	and $k0, $k1, $k0
-	mtc0 $k0, $12
+    mfc0 $k0, $12 # N8: Acknowledge all interrupts and turn off master flag
+    addi $k1, $zero, 0xFFF
+    sll $k1, $k1, 0xC
+    addi $k1, $k1, 0xF00
+    sll $k1, $k1, 0x8
+    addi $k1, $k1, 0xFE
+    and $k0, $k1, $k0
+    mtc0 $k0, $12
 
-	jal PROC_INTR_PROCESS
+    jal PROC_INTR_PROCESS
 
-	mfc0 $k1, $12
-	add $k0, $zero, $zero
-	append_intr_flag_mask($k0) # N2: Reset all interrupts
-	or $k1, $k0, $k1
-	mtc0 $k1, $12 # Set new register value
+    mfc0 $k1, $12
+    add $k0, $zero, $zero
+    append_intr_flag_mask($k0) # N2: Reset all interrupts
+    or $k1, $k0, $k1
+    mtc0 $k1, $12 # Set new register value
 
-	lw $k1, ISRS2($zero) # N2: restore the registers I used
-	lw $ra, ISRS1($zero)
-	lw $k0, ISRS0($zero) # N2: return to whence we've interrupted
-	jr $k0
+    lw $k1, ISRS2($zero) # N2: restore the registers I used
+    lw $ra, ISRS1($zero)
+    lw $k0, ISRS0($zero) # N2: return to whence we've interrupted
+    jr $k0
 # End ISR
 
 
-		nop # N8: Padding instructions to separate ISR from main line code (not really needed, discard if space gets short)
-		nop # Note: You need these if you see your code show up in X200!!!! You've been warned!!!!!
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
+        nop # N8: Padding instructions to separate ISR from main line code (not really needed, discard if space gets short)
+        nop # Note: You need these if you see your code show up in X200!!!! You've been warned!!!!!
+        nop
+        nop
+        nop
+        nop
+        nop
+        nop
 
 
-	## Main Program Start
+    ## Main Program Start
 __KMAIN:
-	jal __SCHEDULER
-	lw $k0, ISRS0($zero)
-	jr $k0
+    jal __SCHEDULER
+    lw $k0, ISRS0($zero)
+    jr $k0
 
-	jr $ra # Shouldn't go here
+    jr $ra # Shouldn't go here
 # End __KMAIN
 
 #################################################
@@ -241,104 +241,104 @@ __KMAIN:
 
 ## Interrupt processor. This is called by the X180 handler!
 PROC_INTR_PROCESS:
-	sw $t0, ISRS3($zero) # Save $t0 to RAM, I need it
+    sw $t0, ISRS3($zero) # Save $t0 to RAM, I need it
 
-	lw $k0, ISRI0($zero) # Load interrupt status to memory (Note: CP0/R13 no longer viable as interrupts reset)
-	addi $k1, $zero, 0x007C # N2: Mask out everything except exception code
-	and  $k1, $k0, $k1
-	srl $k1, $k1, 0x2
-	sw  $k1, EXCP_CODE($zero) # Store it to memory
-	
-	beq $k1, $zero, IS_INTR # Would do a bne here, but not available in the arch, hence this skip-step if
-	beq $zero, $zero, OTHER_EXCP
-	IS_INTR:
+    lw $k0, ISRI0($zero) # Load interrupt status to memory (Note: CP0/R13 no longer viable as interrupts reset)
+    addi $k1, $zero, 0x007C # N2: Mask out everything except exception code
+    and  $k1, $k0, $k1
+    srl $k1, $k1, 0x2
+    sw  $k1, EXCP_CODE($zero) # Store it to memory
+    
+    beq $k1, $zero, IS_INTR # Would do a bne here, but not available in the arch, hence this skip-step if
+    beq $zero, $zero, OTHER_EXCP
+    IS_INTR:
 
-		srl $k0, $k0, 0x8 # N3: Look at the interrupt flags
-		addi $k1, $zero, 0xFF
-		and $k0, $k1, $k0
-		
-		addi $k1, $zero, 0x80 # N4: Case HWINTR5 (also for next few blocks for different interrupts)
-		add $t0, $zero, $k1
-		and $k1, $k0, $k1
-		beq $k1, $t0, CASE_HWINTR5
-		
-		addi $k1, $zero, 0x40
-		add $t0, $zero, $k1
-		and $k1, $k0, $k1
-		beq $k1, $t0, CASE_HWINTR4
-		
-		addi $k1, $zero, 0x20
-		add $t0, $zero, $k1
-		and $k1, $k0, $k1
-		beq $k1, $t0, CASE_HWINTR3
-		
-		addi $k1, $zero, 0x10
-		add $t0, $zero, $k1
-		and $k1, $k0, $k1
-		beq $k1, $t0, CASE_HWINTR2
-		
-		addi $k1, $zero, 0x08
-		add $t0, $zero, $k1
-		and $k1, $k0, $k1
-		beq $k1, $t0, CASE_HWINTR1
-		
-		addi $k1, $zero, 0x04
-		add $t0, $zero, $k1
-		and $k1, $k0, $k1
-		beq $k1, $t0, CASE_HWINTR0 # TODO: Compare with zero incorrect, fix this (fixed)
-		
-		addi $k1, $zero, 0x02
-		add $t0, $zero, $k1
-		and $k1, $k0, $k1
-		beq $k1, $t0, CASE_SWINTR1
-		
-		addi $k1, $zero, 0x01
-		add $t0, $zero, $k1
-		and $k1, $k0, $k1
-		beq $k1, $t0, CASE_SWINTR0
-		
-		beq $zero, $zero, END_IS_INTR
-		
-		CASE_HWINTR5: # Pet the timer then defer to the scheduler
-			mtc0 $zero, $22
-			sw $ra, ISRI2($zero)
-			jal __SCHEDULER
-			lw $ra, ISRI2($zero)
-			beq $zero, $zero, END_IS_INTR
-		CASE_HWINTR4: # Store A0 which corresponds to the fired interrupt
-		CASE_HWINTR3:
-		CASE_HWINTR2:
-		CASE_HWINTR1:
-			sw $t0, OTHER_INTR($zero)
-			beq $zero, $zero, END_IS_INTR # Hardware interrupts 1 through 4 ignored, simply note and reset them
-		CASE_HWINTR0:
-			sw $t0, AES_DONE($zero) # Signal that AES is now complete (make sure A0 has 1 in it!)
-			nop # Why did I put this here? I'll keep it for now . . .
-			beq $zero, $zero, END_IS_INTR
-		CASE_SWINTR1:
-			addi $t0, $zero, 0x11
-			sw $t0, TRAP_SET($zero)
-			beq $zero, $zero, END_IS_INTR
-		CASE_SWINTR0: # Any traps noted down by Adm. Ackbar
-			addi $t0, $zero, 0x10
-			sw $t0, TRAP_SET($zero)
-			beq $zero, $zero, END_IS_INTR
-	## Exception Handling: At this time, we simply skip the instruction that screwed up. Should do something more intelligent someday.
-	OTHER_EXCP:
-		lw $k0, ISRS0($zero)
-		addi $k0, $k0, 0x4 # Skip offending instruction (ref: http://www.cs.uwm.edu/classes/cs315/Bacon/Lecture/HTML/ch15s10.html)
-		sw $k0, ISRS0($zero)
-	END_IS_INTR:
+        srl $k0, $k0, 0x8 # N3: Look at the interrupt flags
+        addi $k1, $zero, 0xFF
+        and $k0, $k1, $k0
+        
+        addi $k1, $zero, 0x80 # N4: Case HWINTR5 (also for next few blocks for different interrupts)
+        add $t0, $zero, $k1
+        and $k1, $k0, $k1
+        beq $k1, $t0, CASE_HWINTR5
+        
+        addi $k1, $zero, 0x40
+        add $t0, $zero, $k1
+        and $k1, $k0, $k1
+        beq $k1, $t0, CASE_HWINTR4
+        
+        addi $k1, $zero, 0x20
+        add $t0, $zero, $k1
+        and $k1, $k0, $k1
+        beq $k1, $t0, CASE_HWINTR3
+        
+        addi $k1, $zero, 0x10
+        add $t0, $zero, $k1
+        and $k1, $k0, $k1
+        beq $k1, $t0, CASE_HWINTR2
+        
+        addi $k1, $zero, 0x08
+        add $t0, $zero, $k1
+        and $k1, $k0, $k1
+        beq $k1, $t0, CASE_HWINTR1
+        
+        addi $k1, $zero, 0x04
+        add $t0, $zero, $k1
+        and $k1, $k0, $k1
+        beq $k1, $t0, CASE_HWINTR0 # TODO: Compare with zero incorrect, fix this (fixed)
+        
+        addi $k1, $zero, 0x02
+        add $t0, $zero, $k1
+        and $k1, $k0, $k1
+        beq $k1, $t0, CASE_SWINTR1
+        
+        addi $k1, $zero, 0x01
+        add $t0, $zero, $k1
+        and $k1, $k0, $k1
+        beq $k1, $t0, CASE_SWINTR0
+        
+        beq $zero, $zero, END_IS_INTR
+        
+        CASE_HWINTR5: # Pet the timer then defer to the scheduler
+            mtc0 $zero, $22
+            sw $ra, ISRI2($zero)
+            jal __SCHEDULER
+            lw $ra, ISRI2($zero)
+            beq $zero, $zero, END_IS_INTR
+        CASE_HWINTR4: # Store A0 which corresponds to the fired interrupt
+        CASE_HWINTR3:
+        CASE_HWINTR2:
+        CASE_HWINTR1:
+            sw $t0, OTHER_INTR($zero)
+            beq $zero, $zero, END_IS_INTR # Hardware interrupts 1 through 4 ignored, simply note and reset them
+        CASE_HWINTR0:
+            sw $t0, AES_DONE($zero) # Signal that AES is now complete (make sure A0 has 1 in it!)
+            nop # Why did I put this here? I'll keep it for now . . .
+            beq $zero, $zero, END_IS_INTR
+        CASE_SWINTR1:
+            addi $t0, $zero, 0x11
+            sw $t0, TRAP_SET($zero)
+            beq $zero, $zero, END_IS_INTR
+        CASE_SWINTR0: # Any traps noted down by Adm. Ackbar
+            addi $t0, $zero, 0x10
+            sw $t0, TRAP_SET($zero)
+            beq $zero, $zero, END_IS_INTR
+    ## Exception Handling: At this time, we simply skip the instruction that screwed up. Should do something more intelligent someday.
+    OTHER_EXCP:
+        lw $k0, ISRS0($zero)
+        addi $k0, $k0, 0x4 # Skip offending instruction (ref: http://www.cs.uwm.edu/classes/cs315/Bacon/Lecture/HTML/ch15s10.html)
+        sw $k0, ISRS0($zero)
+    END_IS_INTR:
 
-	lw $t0, ISRS3($zero) # Restore $t0 from RAM
-	jr $ra
+    lw $t0, ISRS3($zero) # Restore $t0 from RAM
+    jr $ra
 
 
 __SCHEDULER_INIT:
     #set PC, RA to first address
     addi $k1, $0, PCB_BASE0
     #addi $k0, $0, task0Start
-	la $k0, task0Start
+    la $k0, task0Start
     sw $k0, PCB_PC_OFFSET($k1)
     sw $k0, PCB_RA_OFFSET($k1)
     addi $k0, $0, 0
@@ -349,7 +349,7 @@ __SCHEDULER_INIT:
 
     addi $k1, $0, PCB_BASE1
     #addi $k0, $0, task1Start
-	la $k0, task1Start
+    la $k0, task1Start
     sw $k0, PCB_PC_OFFSET($k1)
     sw $k0, PCB_RA_OFFSET($k1)
     addi $k0, $0, 1
@@ -360,7 +360,7 @@ __SCHEDULER_INIT:
 
     addi $k1, $0, PCB_BASE2
     #addi $k0, $0, task2Start
-	la $k0, task2Start
+    la $k0, task2Start
     sw $k0, PCB_PC_OFFSET($k1)
     sw $k0, PCB_RA_OFFSET($k1)
     addi $k0, $0, 2
@@ -371,7 +371,7 @@ __SCHEDULER_INIT:
 
     addi $k1, $0, PCB_BASE3
     #addi $k0, $0, task3Start
-	la $k0, task3Start
+    la $k0, task3Start
     sw $k0, PCB_PC_OFFSET($k1)
     sw $k0, PCB_RA_OFFSET($k1)
     addi $k0, $0, 3
@@ -382,7 +382,7 @@ __SCHEDULER_INIT:
 
     addi $k1, $0, PCB_BASE4
     #addi $k0, $0, task4Start
-	la $k0, task4Start
+    la $k0, task4Start
     sw $k0, PCB_PC_OFFSET($k1)
     sw $k0, PCB_RA_OFFSET($k1)
     addi $k0, $0, 4
@@ -393,7 +393,7 @@ __SCHEDULER_INIT:
 
     addi $k1, $0, PCB_BASE5
     #addi $k0, $0, task5Start
-	la $k0, task5Start
+    la $k0, task5Start
     sw $k0, PCB_PC_OFFSET($k1)
     sw $k0, PCB_RA_OFFSET($k1)
     addi $k0, $0, 5
@@ -404,7 +404,7 @@ __SCHEDULER_INIT:
 
     addi $k1, $0, PCB_BASE6
     #addi $k0, $0, task6Start
-	la $k0, task6Start
+    la $k0, task6Start
     sw $k0, PCB_PC_OFFSET($k1)
     sw $k0, PCB_RA_OFFSET($k1)
     sw $k0, ISRS0($0)  # should be first address of iMEM for task6
@@ -447,58 +447,64 @@ __SCHEDULER:
     sll $8, $8, 7
 
     and $k0, $31, $8
-    bne $k0, $0, caseShedTask0  #if (mask & statusReg != 0)
+    bne $k0, $0, caseSchedTask0  #if (mask & statusReg != 0)
 
     sll $8, $8, 1
     and $k0, $31, $8
-    bne $k0, $0, caseShedTask1    
+    bne $k0, $0, caseSchedTask1    
 
     sll $8, $8, 1
     and $k0, $31, $8
-    bne $k0, $0, caseShedTask2  
+    bne $k0, $0, caseSchedTask2  
 
     sll $8, $8, 1
     and $k0, $31, $8
-    bne $k0, $0, caseShedTask3  
+    bne $k0, $0, caseSchedTask3  
 
     sll $8, $8, 1
     and $k0, $31, $8
-    bne $k0, $0, caseShedTask4  
+    bne $k0, $0, caseSchedTask4  
 
     sll $8, $8, 1
     and $k0, $31, $8
-    bne $k0, $0, caseShedTask5
+    bne $k0, $0, caseSchedTask5
 
     sll $8, $8, 1
     and $k0, $31, $8
-    bne $k0, $0, caseShedTask6
+    bne $k0, $0, caseSchedTask6
 
 
   # set k0 to base address of PCB for current task
-  caseShedTask0:
+  # 31 = status register
+  # 8 = inverse mask
+  caseSchedTask0:
     addi $k0, $0, PCB_BASE0
-    beq $zero, $zero, caseShedTaskEnd
-  caseShedTask1:
+    beq $zero, $zero, caseSchedTaskEnd
+  caseSchedTask1:
     addi $k0, $0, PCB_BASE1
-    beq $zero, $zero, caseShedTaskEnd
-  caseShedTask2:
+    beq $zero, $zero, caseSchedTaskEnd
+  caseSchedTask2:
     addi $k0, $0, PCB_BASE2
-    beq $zero, $zero, caseShedTaskEnd
-  caseShedTask3:
+    beq $zero, $zero, caseSchedTaskEnd
+  caseSchedTask3:
     addi $k0, $0, PCB_BASE3
-    beq $zero, $zero, caseShedTaskEnd
-  caseShedTask4:
+    beq $zero, $zero, caseSchedTaskEnd
+  caseSchedTask4:
     addi $k0, $0, PCB_BASE4
-    beq $zero, $zero, caseShedTaskEnd
-  caseShedTask5:
+    beq $zero, $zero, caseSchedTaskEnd
+  caseSchedTask5:
     addi $k0, $0, PCB_BASE5
-    beq $zero, $zero, caseShedTaskEnd
-  caseShedTask6:
+    beq $zero, $zero, caseSchedTaskEnd
+  caseSchedTask6:
     addi $k0, $0, PCB_BASE6
 
-  caseShedTaskEnd:
-    srl $8, $8, 8   #8 because I want it to be 0 if task0 is running
-    sw $8, SCHED_LAST_TASK($0)    #set aside current running task number for later
+  caseSchedTaskEnd:
+    srl $k1, $8, 8   #8 because I want it to be 0 if task0 is running
+    sw $k1, SCHED_LAST_TASK($0)    #set aside current running task number for later
+    addi $k1, $0, 0xFFFF
+    xor $8, $8, $k1
+    and $31, $31, $8
+    sw $31, SCHED_STATUS($0) #update sched status
 
     # save all the registers into the PCB
 
@@ -554,76 +560,80 @@ __SCHEDULER:
   lw $k0, SCHED_LAST_TASK($0)  #last task
   lw $k1, SCHED_STATUS($0)  #status register
 
-  beq $k0, $0, caseShedLast0
+  beq $k0, $0, caseSchedLast0
   srl $k0, $k0, 1
-  beq $k0, $0, caseShedLast1
+  beq $k0, $0, caseSchedLast1
   srl $k0, $k0, 1
-  beq $k0, $0, caseShedLast2
+  beq $k0, $0, caseSchedLast2
   srl $k0, $k0, 1
-  beq $k0, $0, caseShedLast3
+  beq $k0, $0, caseSchedLast3
   srl $k0, $k0, 1
-  beq $k0, $0, caseShedLast4
+  beq $k0, $0, caseSchedLast4
   srl $k0, $k0, 1
-  beq $k0, $0, caseShedLast5
+  beq $k0, $0, caseSchedLast5
   srl $k0, $k0, 1
-  beq $k0, $0, caseShedLast6
+  beq $k0, $0, caseSchedLast6
 
 
-  caseShedLast0: #if (last=0 && 1.isValid) then next = 1 else keep going
-    addi $k0, $0, 2
-    and $k0, $k0, $k1
-    bne $k0, $0, caseShedNext1
-  caseShedLast1:
-    addi $k0, $0, 4    #2^next
-    and $k0, $k0, $k1
-    bne $k0, $0, caseShedNext2
-  caseShedLast2:
-    addi $k0, $0, 8
-    and $k0, $k0, $k1
-    bne $k0, $0, caseShedNext3
-  caseShedLast3:
-    addi $k0, $0, 16
-    and $k0, $k0, $k1
-    bne $k0, $0, caseShedNext4
-  caseShedLast4:
-    addi $k0, $0, 32
-    and $k0, $k0, $k1
-    bne $k0, $0, caseShedNext5
-  caseShedLast5:
-    addi $k0, $0, 64
-    and $k0, $k0, $k1
-    bne $k0, $0, caseShedNext6
-  caseShedLast6:
-    addi $k0, $0, 1
-    and $k0, $k0, $k1
-    bne $k0, $0, caseShedNext0
+  caseSchedLast0: #if (last=0 && 1.isValid) then next = 1 else keep going
+    addi $31, $0, 2
+    and $8, $31, $k1
+    bne $8, $0, caseSchedNext1
+  caseSchedLast1:
+    addi $31, $0, 4    #2^next
+    and $8, $31, $k1
+    bne $8, $0, caseSchedNext2
+  caseSchedLast2:
+    addi $31, $0, 8
+    and $8, $31, $k1
+    bne $8, $0, caseSchedNext3
+  caseSchedLast3:
+    addi $31, $0, 16
+    and $8, $31, $k1
+    bne $8, $0, caseSchedNext4
+  caseSchedLast4:
+    addi $31, $0, 32
+    and $8, $31, $k1
+    bne $8, $0, caseSchedNext5
+  caseSchedLast5:
+    addi $31, $0, 64
+    and $8, $31, $k1
+    bne $8, $0, caseSchedNext6
+  caseSchedLast6:
+    addi $31, $0, 1
+    and $8, $31, $k1
+    bne $8, $0, caseSchedNext0
 
-  beq $zero, $zero, caseShedLast0 #circular list
+  beq $zero, $zero, caseSchedLast0 #circular list
 
 
 #setup loading next task
-  caseShedNext0:
+  caseSchedNext0:
     addi $k0, $0, PCB_BASE0
-    beq $zero, $zero, caseShedNextEnd
-  caseShedNext1:
+    beq $zero, $zero, caseSchedNextEnd
+  caseSchedNext1:
     addi $k0, $0, PCB_BASE1
-    beq $zero, $zero, caseShedNextEnd
-  caseShedNext2:
+    beq $zero, $zero, caseSchedNextEnd
+  caseSchedNext2:
     addi $k0, $0, PCB_BASE2
-    beq $zero, $zero, caseShedNextEnd
-  caseShedNext3:
+    beq $zero, $zero, caseSchedNextEnd
+  caseSchedNext3:
     addi $k0, $0, PCB_BASE3
-    beq $zero, $zero, caseShedNextEnd
-  caseShedNext4:
+    beq $zero, $zero, caseSchedNextEnd
+  caseSchedNext4:
     addi $k0, $0, PCB_BASE4
-    beq $zero, $zero, caseShedNextEnd
-  caseShedNext5:
+    beq $zero, $zero, caseSchedNextEnd
+  caseSchedNext5:
     addi $k0, $0, PCB_BASE5
-    beq $zero, $zero, caseShedNextEnd
-  caseShedNext6:
+    beq $zero, $zero, caseSchedNextEnd
+  caseSchedNext6:
     addi $k0, $0, PCB_BASE6
 
-  caseShedNextEnd:
+  caseSchedNextEnd:
+  #31 = task mask # k1= status reg
+  sll $31, $31, 7
+  or $k1, $k1, $31
+  sw $k1, SCHED_STATUS($0)
 
 
 #determine if this is the initial run
@@ -739,231 +749,231 @@ nop
 
 task1Start:
 PROC_TASK_AES:
-	# Frame init
-	#addi $gp, $zero, AES_GP
-	#addi $fp, $zero, AES_FP
-	#addi $sp, $zero, AES_SP
+    # Frame init
+    #addi $gp, $zero, AES_GP
+    #addi $fp, $zero, AES_FP
+    #addi $sp, $zero, AES_SP
 
-	# Load the key directly into the coprocessor
-	addi $t0, $zero, AES_KEY_HWORD0
-	addi $t1, $zero, AES_KEY_HWORD1
-	addi $t2, $zero, AES_KEY_HWORD2
-	addi $t3, $zero, AES_KEY_HWORD3
-	addi $t4, $zero, AES_KEY_HWORD4
-	addi $t5, $zero, AES_KEY_HWORD5
-	addi $t6, $zero, AES_KEY_HWORD6
-	addi $t7, $zero, AES_KEY_HWORD7
-	# TODO: Every time this is compiled, replace ANY MTC0 instruction with MTC2!!! Manually...
-	mtc0 $t0, $2
-	mtc0 $t1, $3
-	mtc0 $t2, $4
-	mtc0 $t3, $5
-	mtc0 $t4, $6
-	mtc0 $t5, $7
-	mtc0 $t6, $8
-	mtc0 $t7, $9
+    # Load the key directly into the coprocessor
+    addi $t0, $zero, AES_KEY_HWORD0
+    addi $t1, $zero, AES_KEY_HWORD1
+    addi $t2, $zero, AES_KEY_HWORD2
+    addi $t3, $zero, AES_KEY_HWORD3
+    addi $t4, $zero, AES_KEY_HWORD4
+    addi $t5, $zero, AES_KEY_HWORD5
+    addi $t6, $zero, AES_KEY_HWORD6
+    addi $t7, $zero, AES_KEY_HWORD7
+    # TODO: Every time this is compiled, replace ANY MTC0 instruction with MTC2!!! Manually...
+    mtc0 $t0, $2
+    mtc0 $t1, $3
+    mtc0 $t2, $4
+    mtc0 $t3, $5
+    mtc0 $t4, $6
+    mtc0 $t5, $7
+    mtc0 $t6, $8
+    mtc0 $t7, $9
 
-	#addi $t1, $fp, sentence # Set up a pointer to start loading the phrase
+    #addi $t1, $fp, sentence # Set up a pointer to start loading the phrase
 
-	## The next N stanzas simply load the phrase in, one agonizing word at a time
-	addi $t0, $zero, MSG_03
-	sll $t0, $t0, 0x8
-	addi $t0, $t0, MSG_02
-	sll $t0, $t0, 0x8
-	addi $t0, $t0, MSG_01
-	sll $t0, $t0, 0x8
-	addi $t0, $t0, MSG_00
-	sw $t0, 0x0($sp)
-	addi $sp, $sp, -0x4
+    ## The next N stanzas simply load the phrase in, one agonizing word at a time
+    addi $t0, $zero, MSG_03
+    sll $t0, $t0, 0x8
+    addi $t0, $t0, MSG_02
+    sll $t0, $t0, 0x8
+    addi $t0, $t0, MSG_01
+    sll $t0, $t0, 0x8
+    addi $t0, $t0, MSG_00
+    sw $t0, 0x0($sp)
+    addi $sp, $sp, -0x4
 
-	addi $t0, $zero, MSG_07
-	sll $t0, $t0, 0x8
-	addi $t0, $t0, MSG_06
-	sll $t0, $t0, 0x8
-	addi $t0, $t0, MSG_05
-	sll $t0, $t0, 0x8
-	addi $t0, $t0, MSG_04
-	sw $t0, 0x0($sp)
-	addi $sp, $sp, -0x4
+    addi $t0, $zero, MSG_07
+    sll $t0, $t0, 0x8
+    addi $t0, $t0, MSG_06
+    sll $t0, $t0, 0x8
+    addi $t0, $t0, MSG_05
+    sll $t0, $t0, 0x8
+    addi $t0, $t0, MSG_04
+    sw $t0, 0x0($sp)
+    addi $sp, $sp, -0x4
 
-	addi $t0, $zero, MSG_11
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_10
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_09
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_08
-	sw $t0, 0x0($sp)
-	addi $sp, $sp, -0x4
+    addi $t0, $zero, MSG_11
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_10
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_09
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_08
+    sw $t0, 0x0($sp)
+    addi $sp, $sp, -0x4
 
-	addi $t0, $zero, MSG_15
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_14
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_13
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_12
-	sw $t0, 0x0($sp)
-	addi $sp, $sp, -0x4
+    addi $t0, $zero, MSG_15
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_14
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_13
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_12
+    sw $t0, 0x0($sp)
+    addi $sp, $sp, -0x4
 
-	addi $t0, $zero, MSG_19
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_18
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_17
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_16
-	sw $t0, 0x0($sp)
-	addi $sp, $sp, -0x4
+    addi $t0, $zero, MSG_19
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_18
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_17
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_16
+    sw $t0, 0x0($sp)
+    addi $sp, $sp, -0x4
 
-	addi $t0, $zero, MSG_23
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_22
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_21
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_20
-	sw $t0, 0x0($sp)
-	addi $sp, $sp, -0x4
+    addi $t0, $zero, MSG_23
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_22
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_21
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_20
+    sw $t0, 0x0($sp)
+    addi $sp, $sp, -0x4
 
-	addi $t0, $zero, MSG_27
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_26
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_25
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_24
-	sw $t0, 0x0($sp)
-	addi $sp, $sp, -0x4
+    addi $t0, $zero, MSG_27
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_26
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_25
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_24
+    sw $t0, 0x0($sp)
+    addi $sp, $sp, -0x4
 
-	addi $t0, $zero, MSG_31
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_30
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_29
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_28
-	sw $t0, 0x0($sp)
-	addi $sp, $sp, -0x4
+    addi $t0, $zero, MSG_31
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_30
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_29
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_28
+    sw $t0, 0x0($sp)
+    addi $sp, $sp, -0x4
 
-	addi $t0, $zero, MSG_35
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_34
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_33
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_32
-	sw $t0, 0x0($sp)
-	addi $sp, $sp, -0x4
-	
-	addi $t0, $zero, MSG_39
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_38
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_37
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_36
-	sw $t0, 0x0($sp)
-	addi $sp, $sp, -0x4
-	
-	addi $t0, $zero, MSG_43
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_42
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_41
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_40
-	sw $t0, 0x0($sp)
-	addi $sp, $sp, -0x4
-	
-	addi $t0, $zero, MSG_47
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_46
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_45
-	sll $t0, $t0, 0x8
-	addi $t0, $zero, MSG_44
-	sw $t0, 0x0($sp)
-	addi $sp, $sp, -0x4
+    addi $t0, $zero, MSG_35
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_34
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_33
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_32
+    sw $t0, 0x0($sp)
+    addi $sp, $sp, -0x4
+    
+    addi $t0, $zero, MSG_39
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_38
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_37
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_36
+    sw $t0, 0x0($sp)
+    addi $sp, $sp, -0x4
+    
+    addi $t0, $zero, MSG_43
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_42
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_41
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_40
+    sw $t0, 0x0($sp)
+    addi $sp, $sp, -0x4
+    
+    addi $t0, $zero, MSG_47
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_46
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_45
+    sll $t0, $t0, 0x8
+    addi $t0, $zero, MSG_44
+    sw $t0, 0x0($sp)
+    addi $sp, $sp, -0x4
 
-	addi $s0, $fp, sentence # Set up a pointer to give to the AES
-	addi $s1, $zero, 12 # Number of words to encrypt
-	addi $s2, $zero, CRLF
-	sll $s2, $s2, 0xF # Set up a register that I can randomly print newline with
-	sw $s2, UART($zero)
-	sw $s2, UART($zero) # Write a couple newlines
+    addi $s0, $fp, sentence # Set up a pointer to give to the AES
+    addi $s1, $zero, 12 # Number of words to encrypt
+    addi $s2, $zero, CRLF
+    sll $s2, $s2, 0xF # Set up a register that I can randomly print newline with
+    sw $s2, UART($zero)
+    sw $s2, UART($zero) # Write a couple newlines
 
-	## Write out the intial data to the UART
-	#add $t1, $zero, $s0 # Set up a pointer to start loading the phrase
-	#addi $t2, $t1, -48 # End pointer is 48 bytes away
-	#WRITE_OUT1:
-		#lw $t3, 0x0($t1)
-		#sw $t3, UART($zero)
-		#addi $t1, $t1, -0x4
-		#bne $t1, $t2, WRITE_OUT1
+    ## Write out the intial data to the UART
+    #add $t1, $zero, $s0 # Set up a pointer to start loading the phrase
+    #addi $t2, $t1, -48 # End pointer is 48 bytes away
+    #WRITE_OUT1:
+        #lw $t3, 0x0($t1)
+        #sw $t3, UART($zero)
+        #addi $t1, $t1, -0x4
+        #bne $t1, $t2, WRITE_OUT1
 
-	# CPU interface/status reg    // 31 , 30,      29,     28,   27-25, 24(RO), ..., 15:0
-	# [0] status                  // INT, go, 128/256, encDec, clkMult, hold  ,  0 , words of data
-	# Guessing that 1 encodes and 0 decodes.
-	mtc0 $s0, $1
-	addi $t1, $zero, 0x5 # Set encrypt at 256 bit mode
-	sll $t1, $t1, 0xF
-	add $t1, $t1, $s1
-	mtc0 $t1, $0
-	 
-	## DMA then starts, encryption starts and now we spin until AES is done
-	addi $t2, $zero, 0x1
-	SPINLOCK_1:
-		lw $t1, AES_DONE($zero)
-		bne $t1, $t2, SPINLOCK_1
-	sw $s2, UART($zero) # N2: Write to CRLFs
-	sw $s2, UART($zero)
-	sw $zero, AES_DONE($zero) # Reset AES done flag
+    # CPU interface/status reg    // 31 , 30,      29,     28,   27-25, 24(RO), ..., 15:0
+    # [0] status                  // INT, go, 128/256, encDec, clkMult, hold  ,  0 , words of data
+    # Guessing that 1 encodes and 0 decodes.
+    mtc0 $s0, $1
+    addi $t1, $zero, 0x5 # Set encrypt at 256 bit mode
+    sll $t1, $t1, 0xF
+    add $t1, $t1, $s1
+    mtc0 $t1, $0
+     
+    ## DMA then starts, encryption starts and now we spin until AES is done
+    addi $t2, $zero, 0x1
+    SPINLOCK_1:
+        lw $t1, AES_DONE($zero)
+        bne $t1, $t2, SPINLOCK_1
+    sw $s2, UART($zero) # N2: Write to CRLFs
+    sw $s2, UART($zero)
+    sw $zero, AES_DONE($zero) # Reset AES done flag
 
-	## Write out the encrypted data to the UART
-	#add $t1, $zero, $s0 # Set up a pointer to start loading the phrase
-	#addi $t2, $t1, -48 # End pointer is 48 bytes away
-	WRITE_OUT2:
-		#lw $t3, 0x0($t1)
-		#sw $t3, UART($zero)
-		#addi $t1, $t1, -0x4
-		#bne $t1, $t2, WRITE_OUT2
-	#sw $s2, UART($zero) # N2: Write to CRLFs
-	#sw $s2, UART($zero)
-	#sw $zero, UART($zero) # Write out a null terminator in case there is none
+    ## Write out the encrypted data to the UART
+    #add $t1, $zero, $s0 # Set up a pointer to start loading the phrase
+    #addi $t2, $t1, -48 # End pointer is 48 bytes away
+    WRITE_OUT2:
+        #lw $t3, 0x0($t1)
+        #sw $t3, UART($zero)
+        #addi $t1, $t1, -0x4
+        #bne $t1, $t2, WRITE_OUT2
+    #sw $s2, UART($zero) # N2: Write to CRLFs
+    #sw $s2, UART($zero)
+    #sw $zero, UART($zero) # Write out a null terminator in case there is none
 
-	# CPU interface/status reg    // 31 , 30,      29,     28,   27-25, 24(RO), ..., 15:0
-	# [0] status                  // INT, go, 128/256, encDec, clkMult, hold  ,  0 , words of data
-	# Guessing that 1 encodes and 0 decodes.
-	mtc0 $s0, $1
-	addi $t1, $zero, 0x4 # Set decrypt at 256 bit mode
-	sll $t1, $t1, 0xF
-	add $t1, $t1, $s1
-	mtc0 $t1, $0
-	 
-	## DMA then starts, decryption starts and now we spin until AES is done
-	addi $t2, $zero, 0x1
-	SPINLOCK_2:
-		lw $t1, AES_DONE($zero)
-		bne $t1, $t2, SPINLOCK_2
-	sw $s2, UART($zero) # N2: Write to CRLFs
-	sw $s2, UART($zero)
-	sw $zero, AES_DONE($zero) # Reset AES done flag
+    # CPU interface/status reg    // 31 , 30,      29,     28,   27-25, 24(RO), ..., 15:0
+    # [0] status                  // INT, go, 128/256, encDec, clkMult, hold  ,  0 , words of data
+    # Guessing that 1 encodes and 0 decodes.
+    mtc0 $s0, $1
+    addi $t1, $zero, 0x4 # Set decrypt at 256 bit mode
+    sll $t1, $t1, 0xF
+    add $t1, $t1, $s1
+    mtc0 $t1, $0
+     
+    ## DMA then starts, decryption starts and now we spin until AES is done
+    addi $t2, $zero, 0x1
+    SPINLOCK_2:
+        lw $t1, AES_DONE($zero)
+        bne $t1, $t2, SPINLOCK_2
+    sw $s2, UART($zero) # N2: Write to CRLFs
+    sw $s2, UART($zero)
+    sw $zero, AES_DONE($zero) # Reset AES done flag
 
-	## Write out the newly decrypted data to the UART
-	add $t1, $zero, $s0 # Set up a pointer to start loading the phrase
-	addi $t2, $t1, -48 # End pointer is 48 bytes away
-	WRITE_OUT3:
-		lw $t3, 0x0($t1)
-		sw $t3, UART($zero)
-		addi $t1, $t1, -0x4
-		bne $t1, $t2, WRITE_OUT3
-	sw $s2, UART($zero) # N2: Write to CRLFs
-	sw $s2, UART($zero)
-	sw $zero, UART($zero) # Write out a null terminator in case there is none
-	
-	beq $zero, $zero, PROC_TASK_AES
-	jr $ra
+    ## Write out the newly decrypted data to the UART
+    add $t1, $zero, $s0 # Set up a pointer to start loading the phrase
+    addi $t2, $t1, -48 # End pointer is 48 bytes away
+    WRITE_OUT3:
+        lw $t3, 0x0($t1)
+        sw $t3, UART($zero)
+        addi $t1, $t1, -0x4
+        bne $t1, $t2, WRITE_OUT3
+    sw $s2, UART($zero) # N2: Write to CRLFs
+    sw $s2, UART($zero)
+    sw $zero, UART($zero) # Write out a null terminator in case there is none
+    
+    beq $zero, $zero, PROC_TASK_AES
+    jr $ra
 ## End AES Task
 
 nop
@@ -983,15 +993,6 @@ nop
 nop
 nop
 
-
-nop
-nop
-nop
-nop
-nop
-nop
-nop
-nop
 nop
 nop
 nop
@@ -1358,5 +1359,5 @@ task4Start:
 task5Start:
 task6Start:
 ## Cattle catcher. This should be somewhere down around line 1330 (whitespace and comments depending). Pad this down with no-ops
-__HALT:	# End of program
-	j __HALT
+__HALT:    # End of program
+    j __HALT
