@@ -353,7 +353,7 @@ __SCHEDULER_INIT:
     sw $k0, PCB_PC_OFFSET($k1)
     sw $k0, PCB_RA_OFFSET($k1)
     addi $k0, $0, 1
-    sll  $k0, $k0, 12
+    sll  $k0, $k0, dMEM_OFFSET_MASK
     ori  $k0, $k0, dMEM_END_MASK
     sw   $k0, PCB_FP_OFFSET($k1)
     sw   $k0, PCB_SP_OFFSET($k1)
@@ -364,7 +364,7 @@ __SCHEDULER_INIT:
     sw $k0, PCB_PC_OFFSET($k1)
     sw $k0, PCB_RA_OFFSET($k1)
     addi $k0, $0, 2
-    sll  $k0, $k0, 12
+    sll  $k0, $k0, dMEM_OFFSET_MASK
     ori  $k0, $k0, dMEM_END_MASK
     sw   $k0, PCB_FP_OFFSET($k1)
     sw   $k0, PCB_SP_OFFSET($k1)
@@ -375,7 +375,7 @@ __SCHEDULER_INIT:
     sw $k0, PCB_PC_OFFSET($k1)
     sw $k0, PCB_RA_OFFSET($k1)
     addi $k0, $0, 3
-    sll  $k0, $k0, 12
+    sll  $k0, $k0, dMEM_OFFSET_MASK
     ori  $k0, $k0, dMEM_END_MASK
     sw   $k0, PCB_FP_OFFSET($k1)
     sw   $k0, PCB_SP_OFFSET($k1)
@@ -386,7 +386,7 @@ __SCHEDULER_INIT:
     sw $k0, PCB_PC_OFFSET($k1)
     sw $k0, PCB_RA_OFFSET($k1)
     addi $k0, $0, 4
-    sll  $k0, $k0, 12
+    sll  $k0, $k0, dMEM_OFFSET_MASK
     ori  $k0, $k0, dMEM_END_MASK
     sw   $k0, PCB_FP_OFFSET($k1)
     sw   $k0, PCB_SP_OFFSET($k1)
@@ -397,7 +397,7 @@ __SCHEDULER_INIT:
     sw $k0, PCB_PC_OFFSET($k1)
     sw $k0, PCB_RA_OFFSET($k1)
     addi $k0, $0, 5
-    sll  $k0, $k0, 12
+    sll  $k0, $k0, dMEM_OFFSET_MASK
     ori  $k0, $k0, dMEM_END_MASK
     sw   $k0, PCB_FP_OFFSET($k1)
     sw   $k0, PCB_SP_OFFSET($k1)
@@ -410,7 +410,7 @@ __SCHEDULER_INIT:
     sw $k0, ISRS0($0)  # should be first address of iMEM for task6
     sw $k0, ISRS1($0)  # this should be where INTR passes RA
     addi $k0, $0, 6
-    sll  $k0, $k0, 12
+    sll  $k0, $k0, dMEM_OFFSET_MASK
     ori  $k0, $k0, dMEM_END_MASK
     sw   $k0, PCB_FP_OFFSET($k1)
     sw   $k0, PCB_SP_OFFSET($k1)
@@ -498,8 +498,7 @@ __SCHEDULER:
 
   caseShedTaskEnd:
     srl $8, $8, 8   #8 because I want it to be 0 if task0 is running
-    addi $k1, $0, SCHED_STATUS
-    sw $8, 4($k1)    #set aside current running task number for later
+    sw $8, SCHED_LAST_TASK($0)    #set aside current running task number for later
 
     # save all the registers into the PCB
 
@@ -551,9 +550,9 @@ __SCHEDULER:
 
 
   #figure out next task
-  addi $k1, $0, SCHED_STATUS
-  lw $k0, 4($k1)  #last task
-  lw $k1, 0($k1)  #status register
+
+  lw $k0, SCHED_LAST_TASK($0)  #last task
+  lw $k1, SCHED_STATUS($0)  #status register
 
   beq $k0, $0, caseShedLast0
   srl $k0, $k0, 1
@@ -694,7 +693,9 @@ __SCHEDULER:
   jr $ra
 
 
-nop # N10: NOPs for sanity (or so I can find this task in the machine code)
+nop # N12: NOPs for sanity (or so I can find this task in the machine code)
+nop
+nop
 nop
 nop
 nop
