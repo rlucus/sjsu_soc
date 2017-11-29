@@ -927,6 +927,7 @@ PROC_TASK_AES:
     addi $t2, $zero, 0x1
     SPINLOCK_1:
         lw $t1, AES_DONE($zero)
+		nop
         bne $t1, $t2, SPINLOCK_1
     sw $zero, AES_DONE($zero) # Reset AES done flag
 
@@ -956,6 +957,7 @@ PROC_TASK_AES:
     addi $t2, $zero, 0x1
     SPINLOCK_2:
         lw $t1, AES_DONE($zero)
+		nop
         bne $t1, $t2, SPINLOCK_2
     sw $zero, AES_DONE($zero) # Reset AES done flag
 
@@ -997,8 +999,6 @@ nop
 nop
 nop
 
-nop
-nop
 nop
 nop
 nop
