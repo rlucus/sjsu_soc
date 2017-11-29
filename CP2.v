@@ -153,7 +153,7 @@ module CP2(
 
     always @ (posedge clk) begin*/
         case(state_dma)
-            idle	  : state_dma = reg_cpu[0][30] ? dmaSet : idle; // WHILE go !=1  
+            idle	  : begin state_dma = reg_cpu[0][30] ? dmaSet : idle; reg_cpu[0][31] = 0;end// WHILE go !=1  
             dmaSet    : begin
                         reg_cpu[0][24]<= 1;
                         //self.clk = clk*1;				// reset clk
