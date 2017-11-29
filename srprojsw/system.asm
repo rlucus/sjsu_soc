@@ -919,6 +919,7 @@ PROC_TASK_AES:
     sll $t1, $t1, 0x18
     add $t1, $t1, $s1
     mtc0 $t1, $0
+	nop
      
     ## DMA then starts, encryption starts and now we spin until AES is done
     addi $t2, $zero, 0x1
@@ -947,6 +948,7 @@ PROC_TASK_AES:
     sll $t1, $t1, 0x18
     add $t1, $t1, $s1
     mtc0 $t1, $0
+	nop
      
     ## DMA then starts, decryption starts and now we spin until AES is done
     addi $t2, $zero, 0x1
@@ -971,8 +973,6 @@ PROC_TASK_AES:
     jr $ra
 ## End AES Task
 
-nop
-nop
 nop
 nop
 nop
