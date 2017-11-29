@@ -208,6 +208,8 @@ __X180_HANDLER: ## Regs clobbered: K0
     lw $k1, ISRS2($zero) # N2: restore the registers I used
     lw $ra, ISRS1($zero)
     lw $k0, ISRS0($zero) # N2: return to whence we've interrupted
+	nop
+	nop
     jr $k0
 # End ISR
 
@@ -996,8 +998,6 @@ nop
 nop
 nop
 
-nop
-nop
 nop
 nop
 nop
