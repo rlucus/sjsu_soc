@@ -313,6 +313,7 @@ PROC_INTR_PROCESS:
             sw $t0, OTHER_INTR($zero)
             beq $zero, $zero, END_IS_INTR # Hardware interrupts 1 through 4 ignored, simply note and reset them
         CASE_HWINTR0:
+			srl $t0, $t0, 0x2 # Divide interrupt number by 4 to get a 1 to store in to AES_DONE, because recycling
             sw $t0, AES_DONE($zero) # Signal that AES is now complete (make sure A0 has 1 in it!)
             nop # Why did I put this here? I'll keep it for now . . .
             beq $zero, $zero, END_IS_INTR
@@ -995,7 +996,6 @@ nop
 nop
 nop
 
-nop
 nop
 nop
 nop
