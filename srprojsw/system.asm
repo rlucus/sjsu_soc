@@ -162,7 +162,6 @@ MEMIO_TEST_OK:
         nop
         nop
         nop
-        nop
         
 ###################################################### 
 # X180 Handler
@@ -998,6 +997,7 @@ nop
 nop
 nop
 
+nop
 nop
 nop
 nop
