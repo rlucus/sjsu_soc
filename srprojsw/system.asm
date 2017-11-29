@@ -224,6 +224,7 @@ __X180_HANDLER: ## Regs clobbered: K0
 
     ## Main Program Start
 __KMAIN:
+    mtc0 $zero, $22
     jal __SCHEDULER
     lw $k0, ISRS0($zero)
     jr $k0
@@ -299,10 +300,10 @@ PROC_INTR_PROCESS:
         
         beq $zero, $zero, END_IS_INTR
         
-        CASE_HWINTR5: # Pet the timer then defer to the scheduler
-            mtc0 $zero, $22
+        CASE_HWINTR5: # Defer to the scheduler then pet the timer
             sw $ra, ISRI2($zero)
             jal __SCHEDULER
+            mtc0 $zero, $22
             lw $ra, ISRI2($zero)
             beq $zero, $zero, END_IS_INTR
         CASE_HWINTR4: # Store A0 which corresponds to the fired interrupt
@@ -745,7 +746,6 @@ nop
 nop
 nop
 nop
-nop
 
 task1Start:
 PROC_TASK_AES:
@@ -753,6 +753,7 @@ PROC_TASK_AES:
     #addi $gp, $zero, AES_GP
     #addi $fp, $zero, AES_FP
     #addi $sp, $zero, AES_SP
+	sw $zero, AES_DONE($zero) # Set the AES done flag to zero to start
 
     # Load the key directly into the coprocessor
     addi $t0, $zero, AES_KEY_HWORD0
@@ -993,7 +994,6 @@ nop
 nop
 nop
 
-nop
 nop
 nop
 nop
