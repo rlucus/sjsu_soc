@@ -119,10 +119,10 @@ module CP2(
 	reg [31:0] reg_cpu [9:0];
 
 	// internal registers; 64kB; each set forms a block
-	reg [31:0] r00 [0:3999];
-	reg [31:0] r01 [0:3999];
-	reg [31:0] r10 [0:3999];
-	reg [31:0] r11 [0:3999];
+	reg [31:0] r00 [0:10];
+	reg [31:0] r01 [0:10];
+	reg [31:0] r10 [0:10];
+	reg [31:0] r11 [0:10];
 
 	// no CPU output if AES is running : Write Only for Key
 //	assign rdData_cpu = (!go && (addr_cpu<2)) ? reg_cpu[addr_cpu] : 0 ; 
@@ -166,22 +166,22 @@ module CP2(
             dmaAck    : state_dma  = HOLD_ACK ? dmaReadA : dmaAck;
             dmaReadA  : begin 
                         r00[i]    <= wrData_dma;
-                        addr_dma   = addr_dma + 1;
+                        addr_dma   = addr_dma + 4;
                         length     = length + 1;
                         state_dma  = (length < reg_cpu[0][15:0])? dmaReadB : dmaPadB;                end
             dmaReadB  : begin
                         r01[i]    <= wrData_dma;
-                        addr_dma   = addr_dma + 1;
+                        addr_dma   = addr_dma + 4;
                         length     = length + 1;
                         state_dma  = (length < reg_cpu[0][15:0])? dmaReadC : dmaPadC;                end
             dmaReadC  : begin
                         r10[i]    <= wrData_dma;
-                        addr_dma   = addr_dma + 1;
+                        addr_dma   = addr_dma + 4;
                         length     = length + 1;
                         state_dma  = (length < reg_cpu[0][15:0])? dmaReadD : dmaPadD;                end
             dmaReadD  : begin
                         r11[i]    <= wrData_dma;
-                        addr_dma   = addr_dma + 1;
+                        addr_dma   = addr_dma + 4;
                         length     = length + 1;
                         i          = i + 1;
                         state_dma  = (length < reg_cpu[0][15:0])? dmaReadA : dmaReadDone;            end
@@ -208,24 +208,24 @@ module CP2(
     
             dmaWriteA : begin
                         we_dma    <= 1;
-                        addr_dma  <= reg_cpu[1][31:0]; 
+                        addr_dma  <= reg_cpu[1][31:0] - 4; 
                         state_dma  = dmaWriteB;	                  end         
             dmaWriteB : begin
                         rdData_dma = r00[i];
-                        addr_dma   = addr_dma + 1;
+                        addr_dma   = addr_dma + 4;
                         length     = length - 4;
                         state_dma  = dmaWriteC;                   end
             dmaWriteC : begin
                         rdData_dma = r01[i];
-                        addr_dma   = addr_dma + 1;
+                        addr_dma   = addr_dma + 4;
                         state_dma  = dmaWriteD;                   end
             dmaWriteD : begin
                         rdData_dma = r10[i];
-                        addr_dma   = addr_dma + 1;
+                        addr_dma   = addr_dma + 4;
                         state_dma  = dmaWriteE;                   end
             dmaWriteE : begin
                         rdData_dma = r11[i];
-                        addr_dma   = addr_dma + 1;
+                        addr_dma   = addr_dma + 4;
                         i          = i + i;
                         state_dma  = (length > 0) ? dmaWriteB : dmaWriteDone;        end
             dmaWriteDone:begin 

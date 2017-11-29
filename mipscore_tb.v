@@ -23,7 +23,7 @@ module mipscore_tb();
             begin
             bounce();
             //if(pc_current > 32'h0000_077C && pc_current < 32'h0000_0A58)
-            //if ((pc_current == 32'h0000_01e8) || (pc_current == 32'h0000_01EC))
+            //if (MIPS.DP.encryption.HOLD == 1)
             //begin
             //    $display("TEST");
             //    $stop;

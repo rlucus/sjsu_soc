@@ -64,7 +64,7 @@ endmodule
 
 module aFifo
   #(parameter    DATA_WIDTH    = 32,
-                 ADDRESS_WIDTH = 6,
+                 ADDRESS_WIDTH = 5,
                  FIFO_DEPTH    = (1 << ADDRESS_WIDTH))
      //Reading port
     (//output reg  [DATA_WIDTH-1:0]        Data_out,
@@ -169,7 +169,7 @@ endmodule
 
 
 module GrayCounter
-   #(parameter   COUNTER_WIDTH = 6)
+   #(parameter   COUNTER_WIDTH = 5)
    
     (output reg  [COUNTER_WIDTH-1:0]    GrayCount_out,  //'Gray' code count output.
     
