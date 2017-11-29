@@ -1,5 +1,5 @@
  Address    Code        Basic                     Source
-
+BEGIN BOOTLOADER
 0x00000000  0x00000820  add $1,$0,$0          62       add $at, $zero, $zero # N29: Initialize all the registers to zero (solves weird bugs that came up in the hardware simulator)
 0x00000004  0x00001020  add $2,$0,$0          63       add $v0, $zero, $zero # Note: T0, T1, and T2 initialized after memory test routine because they're used in the test
 0x00000008  0x00001820  add $3,$0,$0          64       add $v1, $zero, $zero
@@ -202,6 +202,7 @@
 0x0000031c  0xac1a7ee0  sw $26,32480($0)      331          sw $k0, 0x7EE0($zero)
 0x00000320  0x8c087eec  lw $8,32492($0)       334      lw $t0, 0x7EEC($zero) # Restore $t0 from RAM
 0x00000324  0x03e00008  jr $31                335      jr $ra
+BEGIN SCHEDULER INIT
 0x00000328  0x201b6000  addi $27,$0,24576     340      addi $k1, $0, 0x6000
 0x0000032c  0x201a0744  addi $26,$0,1860      342      la $k0, task0Start
 0x00000330  0xaf7a0000  sw $26,0($27)         343      sw $k0, 0($k1)
@@ -270,6 +271,7 @@
 0x0000042c  0x201b6003  addi $27,$0,24579     421      addi   $k1,  $0, 0x6003 # [unused  |init|currTask |validTask]
 0x00000430  0xac1b7fe0  sw $27,32736($0)      422      sw     $k1,  0x7FE0($0)
 0x00000434  0x03e00008  jr $31                426      jr  $ra        #DEBUG pick this line if using in BootLoader
+BEGIN SCHEDULER
 0x00000438  0xac1f7ff4  sw $31,32756($0)      433      sw $ra, 0x7FF4($0) #save current RA to 0x7ff0
 0x0000043c  0xac1b7ff8  sw $27,32760($0)      434      sw $k1, 0x7FF8($0)
 0x00000440  0xac087ffc  sw $8,32764($0)       436      sw $t0, 0x7FFC($0)
@@ -465,6 +467,7 @@
 0x00000738  0x00000000  nop                   716  nop
 0x0000073c  0x00000000  nop                   717  nop
 0x00000740  0x00000000  nop                   718  nop
+BEGIN FIBONACCI
 0x00000744  0x200d000c  addi $13,$0,12        724        addi $t5, $zero, 12   # load array size
 0x00000748  0x200a0001  addi $10,$0,1         725        addi $t2, $zero, 1    # 0 and 1 are the first and second Fib. numbers
 0x0000074c  0xafa00000  sw $0,0($29)          726        sw   $zero, 0($sp)    # F[0] = 0
@@ -488,6 +491,7 @@
 0x00000794  0x00000000  nop                   746  nop
 0x00000798  0x00000000  nop                   747  nop
 0x0000079c  0x00000000  nop                   748  nop
+BEGIN AES
 0x000007a0  0xac007028  sw $0,28712($0)       756  	sw $zero, 0x7028($zero) # Set the AES done flag to zero to start
 0x000007a4  0x20081100  addi $8,$0,4352       759      addi $t0, $zero, 0x1100
 0x000007a8  0x20093322  addi $9,$0,13090      760      addi $t1, $zero, 0x3322
@@ -652,6 +656,7 @@
 0x00000a24  0xac007000  sw $0,28672($0)       974      sw $zero, 0x7000($zero) # Write out a null terminator in case there is none
 0x00000a28  0x1000ff5d  beq $0,$0,-163        976      beq $zero, $zero, PROC_TASK_AES
 0x00000a2c  0x03e00008  jr $31                977      jr $ra
+BEGIN THE END
 0x00000a30  0x00000000  nop                   980  nop
 0x00000a34  0x00000000  nop                   981  nop
 0x00000a38  0x00000000  nop                   982  nop
