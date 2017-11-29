@@ -901,8 +901,6 @@ PROC_TASK_AES:
     addi $s1, $zero, 12 # Number of words to encrypt
     addi $s2, $zero, CRLF
     sll $s2, $s2, 0xF # Set up a register that I can randomly print newline with
-    sw $s2, UART($zero)
-    sw $s2, UART($zero) # Write a couple newlines
 
     ## Write out the intial data to the UART
     #add $t1, $zero, $s0 # Set up a pointer to start loading the phrase
@@ -917,8 +915,8 @@ PROC_TASK_AES:
     # [0] status                  // INT, go, 128/256, encDec, clkMult, hold  ,  0 , words of data
     # Guessing that 1 encodes and 0 decodes.
     mtc0 $s0, $1
-    addi $t1, $zero, 0x5 # Set encrypt at 256 bit mode
-    sll $t1, $t1, 0xF
+    addi $t1, $zero, 0x70 # Set encrypt at 256 bit mode
+    sll $t1, $t1, 0x18
     add $t1, $t1, $s1
     mtc0 $t1, $0
      
@@ -927,8 +925,6 @@ PROC_TASK_AES:
     SPINLOCK_1:
         lw $t1, AES_DONE($zero)
         bne $t1, $t2, SPINLOCK_1
-    sw $s2, UART($zero) # N2: Write to CRLFs
-    sw $s2, UART($zero)
     sw $zero, AES_DONE($zero) # Reset AES done flag
 
     ## Write out the encrypted data to the UART
@@ -947,8 +943,8 @@ PROC_TASK_AES:
     # [0] status                  // INT, go, 128/256, encDec, clkMult, hold  ,  0 , words of data
     # Guessing that 1 encodes and 0 decodes.
     mtc0 $s0, $1
-    addi $t1, $zero, 0x4 # Set decrypt at 256 bit mode
-    sll $t1, $t1, 0xF
+    addi $t1, $zero, 0x60 # Set decrypt at 256 bit mode
+    sll $t1, $t1, 0x18
     add $t1, $t1, $s1
     mtc0 $t1, $0
      
@@ -957,8 +953,6 @@ PROC_TASK_AES:
     SPINLOCK_2:
         lw $t1, AES_DONE($zero)
         bne $t1, $t2, SPINLOCK_2
-    sw $s2, UART($zero) # N2: Write to CRLFs
-    sw $s2, UART($zero)
     sw $zero, AES_DONE($zero) # Reset AES done flag
 
     ## Write out the newly decrypted data to the UART
@@ -987,6 +981,13 @@ nop
 nop
 nop
 nop
+nop
+nop
+nop
+nop
+nop
+nop
+
 nop
 nop
 nop
