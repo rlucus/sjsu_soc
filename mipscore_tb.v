@@ -19,9 +19,14 @@ module mipscore_tb();
         //while(pc_current != 32'h0000005C)
         //repeat (150)
         //repeat (600)
-        repeat (100000)    
+        repeat (1000000)    
             begin
             bounce();
+            //if(pc_current > 32'h0000_077C && pc_current < 32'h0000_0A58)
+            //begin
+            //    $display("TEST");
+            //    $stop;
+            //end
             end
         //$stop;
         

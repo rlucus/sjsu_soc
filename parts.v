@@ -82,7 +82,7 @@ endmodule
 
 module dmem #(parameter wide = 8)
 (input clk, we, [31:0] a, [wide-1:0] d, output [wide-1:0] q);
-    reg [wide-1:0] ram [0:131071];
+    reg [wide-1:0] ram [0:40000];
     //reg [wide-1:0] ram [0:91000];
     always @ (posedge clk) if (we) ram[a/4] <= d;
     assign q = ram[a/4];
@@ -93,7 +93,7 @@ module maindec
     reg [16:0] ctrl;
     reg tempHold = 0; 
     always @ (ctrl) {branch, jump, link, reg_dst, we_reg, alu_src, we_dm, dm2reg, alu_op, prossSel, weCP0, weCP2, BNE} = ctrl;
-    assign holdACK = tempHold ? 1'b1 : 0;
+    assign holdACK = tempHold ? 1'b1 : 1'b0;
     always @ (op)
     
         case(op)
@@ -111,7 +111,7 @@ module maindec
             default: INTCTRL <= 1'b0;
         endcase
     
-    always @ (op, EXL, cpop)
+    always @ (op, EXL, cpop, hold)
         //interrupt logic
         if((EXL == 1) & ((pc_current < 32'h180) | (pc_current > 32'h200)))
         begin
@@ -121,6 +121,7 @@ module maindec
             //put hold accept logic here
             if(hold) tempHold = hold ? 1'b1 : 1'b0;
             else begin
+            tempHold = 1'b0;
             case (op)
                 6'b000000: ctrl = 17'b0_00_0_1_1_0_0_0_010_00_0_0_0; // R-Type
                 6'b100011: ctrl = 17'b0_00_0_0_1_1_0_1_000_00_0_0_0; // LW

@@ -55,7 +55,7 @@ module datapath
     mux2    #(32) pc_src_mux (.sel(pc_src), .a(jra), .b(bta), .y(pc_pre));
     //locations for IVT
     mux4    #(32) pc_jmp_mux (.sel(jump), .a(pc_pre), .b(jta), .c(32'h0000_0180), .d(32'h0000_0200), .y(pc_next));
-    dreg    #(32) pc_reg     (.clk(clk), .rst(rst), .en(1), .d(pc_next), .q(pc_current));
+    dreg    #(32) pc_reg     (.clk(clk), .rst(rst), .en(~holdACK), .d(pc_next), .q(pc_current));
     adder   #(32) pc_add4    (.a(pc_current), .b(4), .y(pc_plus4));
     //added for logic of CP0
     //adder   #(32) pc_add8    (.a(pc_plus4), .b(4), .y(pc_plus8));
@@ -104,7 +104,7 @@ module controlunit
  input  [4:0] cpop,
  input  [5:0] op, funct,
  input [31:0] pc_current,
- output       pc_src, link, jump_reg, reg_dst, we_reg, alu_src, we_hi, we_lo, hi2reg, lo2reg, we_dm, dm2reg, weCP0, weCP2, holdACK, INTCTRL,
+ output       pc_src, link, jump_reg, reg_dst, we_reg, alu_src, we_hi, we_lo, hi2reg, lo2reg, we_dm, dm2reg, weCP0, weCP2, holdACK, INTCTRL, pcregen,
  output [1:0] jump, prossSel,
  output [3:0] alu_ctrl);
     wire       branch, BNE;

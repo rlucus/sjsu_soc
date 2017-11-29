@@ -22,7 +22,8 @@
 module CP2(
 	input              clk, rst,
 	input              we_cpu,
-	input  wire [ 5:0] addr_cpu,
+	//input  wire [ 5:0] addr_cpu,
+	input  wire [ 4:0] addr_cpu,
 	input  wire [31:0] wrData_cpu,
 	output wire [31:0] rdData_cpu,
 
