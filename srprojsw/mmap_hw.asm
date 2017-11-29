@@ -76,12 +76,4 @@
 	## Device Addresses:
 	.eqv	UART	0x7000
 	
-	## Fibonacci Offsets
-	.eqv	fibs	0x1000 # 12 words
-
-	## AES Offsets
-	.eqv AES_GP 0x0000
-	.eqv AES_FP 0x0080
-	.eqv AES_SP 0x00B0
-
 	.eqv sentence 0x0 # Keep the message in the phrase

@@ -709,17 +709,16 @@ nop
 # Compute first twelve Fibonacci numbers and put in array, then print
 task0Start:
 PROC_TASK_FIBONACCI:
-      addi $t0, $zero, fibs # load address of array
       addi $t5, $zero, 12   # load array size
       addi $t2, $zero, 1    # 0 and 1 are the first and second Fib. numbers
-      sw   $zero, 0($t0)    # F[0] = 0
-      sw   $t2, 4($t0)      # F[1] = F[0] = 1
+      sw   $zero, 0($sp)    # F[0] = 0
+      sw   $t2, -4($sp)     # F[1] = F[0] = 1
       addi $t1, $t5, -2     # Counter for loop, will execute (size-2) times
-loop: lw   $t3, 0($t0)      # Get value from array F[n] 
-      lw   $t4, 4($t0)      # Get value from array F[n+1]
+loop: lw   $t3, 0($sp)      # Get value from array F[n] 
+      lw   $t4, -4($sp)     # Get value from array F[n+1]
       add  $t2, $t3, $t4    # $t2 = F[n] + F[n+1]
-      sw   $t2, 8($t0)      # Store F[n+2] = F[n] + F[n+1] in array
-      addi $t0, $t0, 4      # increment address of Fib. number source
+      sw   $t2, -8($sp)     # Store F[n+2] = F[n] + F[n+1] in array
+      addi $sp, $sp, -4     # increment address of Fib. number source
       addi $t1, $t1, -1     # decrement loop counter
       bne  $t1, $zero, loop # repeat if not finished yet.
 beq $zero, $zero, PROC_TASK_FIBONACCI # Keep running the task forever
@@ -735,13 +734,14 @@ nop
 nop
 nop
 nop
+nop
 
 task1Start:
 PROC_TASK_AES:
 	# Frame init
-	addi $gp, $zero, AES_GP
-	addi $fp, $zero, AES_FP
-	addi $sp, $zero, AES_SP
+	#addi $gp, $zero, AES_GP
+	#addi $fp, $zero, AES_FP
+	#addi $sp, $zero, AES_SP
 
 	# Load the key directly into the coprocessor
 	addi $t0, $zero, AES_KEY_HWORD0
@@ -762,7 +762,7 @@ PROC_TASK_AES:
 	mtc0 $t6, $8
 	mtc0 $t7, $9
 
-	addi $t1, $fp, sentence # Set up a pointer to start loading the phrase
+	#addi $t1, $fp, sentence # Set up a pointer to start loading the phrase
 
 	## The next N stanzas simply load the phrase in, one agonizing word at a time
 	addi $t0, $zero, MSG_03
@@ -772,8 +772,8 @@ PROC_TASK_AES:
 	addi $t0, $t0, MSG_01
 	sll $t0, $t0, 0x8
 	addi $t0, $t0, MSG_00
-	sw $t0, 0x0($t1)
-	addi $t1, $t1, 0x1
+	sw $t0, 0x0($sp)
+	addi $sp, $sp, -0x4
 
 	addi $t0, $zero, MSG_07
 	sll $t0, $t0, 0x8
@@ -782,8 +782,8 @@ PROC_TASK_AES:
 	addi $t0, $t0, MSG_05
 	sll $t0, $t0, 0x8
 	addi $t0, $t0, MSG_04
-	sw $t0, 0x0($t1)
-	addi $t1, $t1, 0x1
+	sw $t0, 0x0($sp)
+	addi $sp, $sp, -0x4
 
 	addi $t0, $zero, MSG_11
 	sll $t0, $t0, 0x8
@@ -792,8 +792,8 @@ PROC_TASK_AES:
 	addi $t0, $zero, MSG_09
 	sll $t0, $t0, 0x8
 	addi $t0, $zero, MSG_08
-	sw $t0, 0x0($t1)
-	addi $t1, $t1, 0x1
+	sw $t0, 0x0($sp)
+	addi $sp, $sp, -0x4
 
 	addi $t0, $zero, MSG_15
 	sll $t0, $t0, 0x8
@@ -802,8 +802,8 @@ PROC_TASK_AES:
 	addi $t0, $zero, MSG_13
 	sll $t0, $t0, 0x8
 	addi $t0, $zero, MSG_12
-	sw $t0, 0x0($t1)
-	addi $t1, $t1, 0x1
+	sw $t0, 0x0($sp)
+	addi $sp, $sp, -0x4
 
 	addi $t0, $zero, MSG_19
 	sll $t0, $t0, 0x8
@@ -812,8 +812,8 @@ PROC_TASK_AES:
 	addi $t0, $zero, MSG_17
 	sll $t0, $t0, 0x8
 	addi $t0, $zero, MSG_16
-	sw $t0, 0x0($t1)
-	addi $t1, $t1, 0x1
+	sw $t0, 0x0($sp)
+	addi $sp, $sp, -0x4
 
 	addi $t0, $zero, MSG_23
 	sll $t0, $t0, 0x8
@@ -822,8 +822,8 @@ PROC_TASK_AES:
 	addi $t0, $zero, MSG_21
 	sll $t0, $t0, 0x8
 	addi $t0, $zero, MSG_20
-	sw $t0, 0x0($t1)
-	addi $t1, $t1, 0x1
+	sw $t0, 0x0($sp)
+	addi $sp, $sp, -0x4
 
 	addi $t0, $zero, MSG_27
 	sll $t0, $t0, 0x8
@@ -832,8 +832,8 @@ PROC_TASK_AES:
 	addi $t0, $zero, MSG_25
 	sll $t0, $t0, 0x8
 	addi $t0, $zero, MSG_24
-	sw $t0, 0x0($t1)
-	addi $t1, $t1, 0x1
+	sw $t0, 0x0($sp)
+	addi $sp, $sp, -0x4
 
 	addi $t0, $zero, MSG_31
 	sll $t0, $t0, 0x8
@@ -842,8 +842,8 @@ PROC_TASK_AES:
 	addi $t0, $zero, MSG_29
 	sll $t0, $t0, 0x8
 	addi $t0, $zero, MSG_28
-	sw $t0, 0x0($t1)
-	addi $t1, $t1, 0x1
+	sw $t0, 0x0($sp)
+	addi $sp, $sp, -0x4
 
 	addi $t0, $zero, MSG_35
 	sll $t0, $t0, 0x8
@@ -852,8 +852,8 @@ PROC_TASK_AES:
 	addi $t0, $zero, MSG_33
 	sll $t0, $t0, 0x8
 	addi $t0, $zero, MSG_32
-	sw $t0, 0x0($t1)
-	addi $t1, $t1, 0x1
+	sw $t0, 0x0($sp)
+	addi $sp, $sp, -0x4
 	
 	addi $t0, $zero, MSG_39
 	sll $t0, $t0, 0x8
@@ -862,8 +862,8 @@ PROC_TASK_AES:
 	addi $t0, $zero, MSG_37
 	sll $t0, $t0, 0x8
 	addi $t0, $zero, MSG_36
-	sw $t0, 0x0($t1)
-	addi $t1, $t1, 0x1
+	sw $t0, 0x0($sp)
+	addi $sp, $sp, -0x4
 	
 	addi $t0, $zero, MSG_43
 	sll $t0, $t0, 0x8
@@ -872,8 +872,8 @@ PROC_TASK_AES:
 	addi $t0, $zero, MSG_41
 	sll $t0, $t0, 0x8
 	addi $t0, $zero, MSG_40
-	sw $t0, 0x0($t1)
-	addi $t1, $t1, 0x1
+	sw $t0, 0x0($sp)
+	addi $sp, $sp, -0x4
 	
 	addi $t0, $zero, MSG_47
 	sll $t0, $t0, 0x8
@@ -882,24 +882,24 @@ PROC_TASK_AES:
 	addi $t0, $zero, MSG_45
 	sll $t0, $t0, 0x8
 	addi $t0, $zero, MSG_44
-	sw $t0, 0x0($t1)
-	addi $t1, $t1, 0x1
+	sw $t0, 0x0($sp)
+	addi $sp, $sp, -0x4
 
 	addi $s0, $fp, sentence # Set up a pointer to give to the AES
 	addi $s1, $zero, 12 # Number of words to encrypt
 	addi $s2, $zero, CRLF
-	sll $s2, $s1, 0xF # Set up a register that I can randomly print newline with
+	sll $s2, $s2, 0xF # Set up a register that I can randomly print newline with
 	sw $s2, UART($zero)
 	sw $s2, UART($zero) # Write a couple newlines
 
 	## Write out the intial data to the UART
-	add $t1, $zero, $s0 # Set up a pointer to start loading the phrase
-	addi $t2, $t1, 48 # End pointer is 48 bytes away
-	WRITE_OUT1:
-		lw $t3, 0x0($t1)
-		sw $t3, UART($zero)
-		addi $t1, $t1, 0x4
-		bne $t1, $t2, WRITE_OUT1
+	#add $t1, $zero, $s0 # Set up a pointer to start loading the phrase
+	#addi $t2, $t1, -48 # End pointer is 48 bytes away
+	#WRITE_OUT1:
+		#lw $t3, 0x0($t1)
+		#sw $t3, UART($zero)
+		#addi $t1, $t1, -0x4
+		#bne $t1, $t2, WRITE_OUT1
 
 	# CPU interface/status reg    // 31 , 30,      29,     28,   27-25, 24(RO), ..., 15:0
 	# [0] status                  // INT, go, 128/256, encDec, clkMult, hold  ,  0 , words of data
@@ -920,16 +920,16 @@ PROC_TASK_AES:
 	sw $zero, AES_DONE($zero) # Reset AES done flag
 
 	## Write out the encrypted data to the UART
-	add $t1, $zero, $s0 # Set up a pointer to start loading the phrase
-	addi $t2, $t1, 48 # End pointer is 48 bytes away
+	#add $t1, $zero, $s0 # Set up a pointer to start loading the phrase
+	#addi $t2, $t1, -48 # End pointer is 48 bytes away
 	WRITE_OUT2:
-		lw $t3, 0x0($t1)
-		sw $t3, UART($zero)
-		addi $t1, $t1, 0x4
-		bne $t1, $t2, WRITE_OUT2
-	sw $s2, UART($zero) # N2: Write to CRLFs
-	sw $s2, UART($zero)
-	sw $zero, UART($zero) # Write out a null terminator in case there is none
+		#lw $t3, 0x0($t1)
+		#sw $t3, UART($zero)
+		#addi $t1, $t1, -0x4
+		#bne $t1, $t2, WRITE_OUT2
+	#sw $s2, UART($zero) # N2: Write to CRLFs
+	#sw $s2, UART($zero)
+	#sw $zero, UART($zero) # Write out a null terminator in case there is none
 
 	# CPU interface/status reg    // 31 , 30,      29,     28,   27-25, 24(RO), ..., 15:0
 	# [0] status                  // INT, go, 128/256, encDec, clkMult, hold  ,  0 , words of data
@@ -951,11 +951,11 @@ PROC_TASK_AES:
 
 	## Write out the newly decrypted data to the UART
 	add $t1, $zero, $s0 # Set up a pointer to start loading the phrase
-	addi $t2, $t1, 48 # End pointer is 48 bytes away
+	addi $t2, $t1, -48 # End pointer is 48 bytes away
 	WRITE_OUT3:
 		lw $t3, 0x0($t1)
 		sw $t3, UART($zero)
-		addi $t1, $t1, 0x4
+		addi $t1, $t1, -0x4
 		bne $t1, $t2, WRITE_OUT3
 	sw $s2, UART($zero) # N2: Write to CRLFs
 	sw $s2, UART($zero)
@@ -965,6 +965,28 @@ PROC_TASK_AES:
 	jr $ra
 ## End AES Task
 
+nop
+nop
+nop
+nop
+nop
+nop
+
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+nop
+
+
+nop
+nop
+nop
+nop
 nop
 nop
 nop
