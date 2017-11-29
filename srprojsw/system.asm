@@ -477,22 +477,22 @@ __SCHEDULER:
   # set k0 to base address of PCB for current task
   caseShedTask0:
     addi $k0, $0, PCB_BASE0
-    b caseShedTaskEnd
+    beq $zero, $zero, caseShedTaskEnd
   caseShedTask1:
     addi $k0, $0, PCB_BASE1
-    b caseShedTaskEnd
+    beq $zero, $zero, caseShedTaskEnd
   caseShedTask2:
     addi $k0, $0, PCB_BASE2
-    b caseShedTaskEnd
+    beq $zero, $zero, caseShedTaskEnd
   caseShedTask3:
     addi $k0, $0, PCB_BASE3
-    b caseShedTaskEnd
+    beq $zero, $zero, caseShedTaskEnd
   caseShedTask4:
     addi $k0, $0, PCB_BASE4
-    b caseShedTaskEnd
+    beq $zero, $zero, caseShedTaskEnd
   caseShedTask5:
     addi $k0, $0, PCB_BASE5
-    b caseShedTaskEnd
+    beq $zero, $zero, caseShedTaskEnd
   caseShedTask6:
     addi $k0, $0, PCB_BASE6
 
@@ -598,28 +598,28 @@ __SCHEDULER:
     and $k0, $k0, $k1
     bne $k0, $0, caseShedNext0
 
-  b caseShedLast0 #circular list
+  beq $zero, $zero, caseShedLast0 #circular list
 
 
 #setup loading next task
   caseShedNext0:
     addi $k0, $0, PCB_BASE0
-    b caseShedNextEnd
+    beq $zero, $zero, caseShedNextEnd
   caseShedNext1:
     addi $k0, $0, PCB_BASE1
-    b caseShedNextEnd
+    beq $zero, $zero, caseShedNextEnd
   caseShedNext2:
     addi $k0, $0, PCB_BASE2
-    b caseShedNextEnd
+    beq $zero, $zero, caseShedNextEnd
   caseShedNext3:
     addi $k0, $0, PCB_BASE3
-    b caseShedNextEnd
+    beq $zero, $zero, caseShedNextEnd
   caseShedNext4:
     addi $k0, $0, PCB_BASE4
-    b caseShedNextEnd
+    beq $zero, $zero, caseShedNextEnd
   caseShedNext5:
     addi $k0, $0, PCB_BASE5
-    b caseShedNextEnd
+    beq $zero, $zero, caseShedNextEnd
   caseShedNext6:
     addi $k0, $0, PCB_BASE6
 
