@@ -421,8 +421,8 @@ __SCHEDULER_INIT:
     sw     $k1,  SCHED_STATUS($0)
 
     #jump sched
-    j       __SCHEDULER   #DEBUG pick this line if using in test simulation
-    #jr  $ra        #DEBUG pick this line if using in BootLoader
+    #j       __SCHEDULER   #DEBUG pick this line if using in test simulation
+    jr  $ra        #DEBUG pick this line if using in BootLoader
 
 #DEBUG This section can be placed independent of the upper section in memory.
 __SCHEDULER:
