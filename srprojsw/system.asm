@@ -1349,7 +1349,6 @@ nop
 nop
 nop
 nop
-nop
 
 ## Trying to start these tasks will halt the CPU. If you want to use these tasks 
 ## then take a label and position it above your task and adjust the scheduler config.
