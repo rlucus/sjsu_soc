@@ -65,7 +65,7 @@ module datapath
     mux2    #(5)  rf_wa_mux  (.sel(reg_dst), .a(instr[20:16]), .b(instr[15:11]), .y(wa_rf));
     mux2    #(5)  rf_jal_mux (.sel(link), .a(wa_rf), .b(31), .y(jal_rf));
     mux2    #(32) rf_wd_mux  (.sel(link), .a(lo_res), .b(pc_plus4), .y(wd_rf_res));
-    regfile #(32) rf         (.clk(clk), .we(we_reg), .wa(jal_rf), .ra1(instr[25:21]), .ra2(instr[20:16]), .wd(wd_rf_res), .rd1(alu_pa), .rd2(wd_dm));
+    regfile #(32) rf         (.clk(clk), .we(we_reg), .wa(jal_rf), .ra1(instr[25:21]), .ra2(instr[20:16]), .wd(wd_rf_res), .rd1(alu_pa), .rd2(wd_dm), .rst(rst));
     // ALU Logic and CP0 Logic
     mux2    #(32) alu_pb_mux (.sel(alu_src), .a(wd_dm), .b(sext_imm), .y(alu_pb));
     alu     #(32) alu        (.op(alu_ctrl), .a(alu_pa), .b(alu_pb), .shiftamount(instr[10:6]), .zero(zero), .y(alu_out), .trap(trap), .NE(NE));

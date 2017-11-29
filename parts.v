@@ -63,9 +63,23 @@ module dreg #(parameter wide = 8)
 endmodule
 
 module regfile #(parameter wide = 8)
-(input clk, we, [4:0] wa, ra1, ra2, [wide-1:0] wd, output [wide-1:0] rd1, rd2);
+(input clk, rst, we, [4:0] wa, ra1, ra2, [wide-1:0] wd, output [wide-1:0] rd1, rd2);
     reg [wide-1:0] rf [0:31];
-    always @ (posedge clk) if (we) rf[wa] <= wd;
+    always @ (posedge clk) 
+    
+    if (we) begin 
+    rf[wa] <= wd; 
+    end else if(rst) 
+    begin 
+    rf[0] <= 0; rf[1] <= 0; rf[2] <= 0; rf[3] <= 0;
+    rf[4] <= 0; rf[5] <= 0; rf[6] <= 0; rf[7] <= 0;
+    rf[8] <= 0; rf[9] <= 0; rf[10] <= 0; rf[11] <= 0;
+    rf[12] <= 0; rf[13] <= 0; rf[14] <= 0; rf[15] <= 0;
+    rf[16] <= 0; rf[17] <= 0; rf[18] <= 0; rf[19] <= 0;
+    rf[20] <= 0; rf[21] <= 0; rf[22] <= 0; rf[23] <= 0;
+    rf[24] <= 0; rf[25] <= 0; rf[26] <= 0; rf[27] <= 0;
+    rf[28] <= 0; rf[29] <= 0; rf[30] <= 0; rf[31] <= 0; 
+    end
     assign rd1 = (ra1) ? rf[ra1] : 0;
     assign rd2 = (ra2) ? rf[ra2] : 0;
 endmodule

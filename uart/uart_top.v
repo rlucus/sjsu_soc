@@ -9,7 +9,7 @@ wire pNextWordToRead;
 reg [2:0] counter;
 wire [7:0] data;
 
-aFifo uart_fifo(.RClk(RClk), .WClk(clk), .Clear_in(reset), .Data_in(dataIn), .Data_out(toUart), .WriteEn_in(we), .ReadEn_in((counter >= 3'b100) && (!Empty_out)), .Empty_out(Empty_out), .pNextWordToRead(pNextWordToRead));
+aFifo uart_fifo(.RClk(RClk), .WClk(clk), .Clear_in(reset), .Data_in(dataIn), .Data_out(toUart), .WriteEn_in(((we == 1'b1) & (address == 32'h0000_7000))), .ReadEn_in((counter >= 3'b100) && (!Empty_out)), .Empty_out(Empty_out), .pNextWordToRead(pNextWordToRead));
 
 //UART_TX_CTRL UART1 (.SEND((busy) && (!Empty_out)), .DATA(toUart[7:0]), .CLK(clk), .READY(busy), .UART_TX(serial));
 
