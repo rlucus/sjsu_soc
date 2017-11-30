@@ -96,7 +96,7 @@ endmodule
 
 module dmem #(parameter wide = 8)
 (input clk, we, [31:0] a, [wide-1:0] d, output [wide-1:0] q);
-    reg [wide-1:0] ram [0:50];
+    reg [wide-1:0] ram [0:500];
     //reg [wide-1:0] ram [0:91000];
     always @ (posedge clk) if (we & (a != 32'h0000_7000)) ram[a/4] <= d;
     assign q = ram[a/4];

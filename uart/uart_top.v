@@ -1,10 +1,10 @@
 `timescale 1ns/1ps
-module uart_top(input RClk, input clk, input reset, input we, input [31:0] dataIn, address, output serial);
+module uart_top(input RClk, input clk, input reset, input we, input [31:0] dataIn, address, output serial, Empty_out);
 
 wire write = ((we == 1'b1) && (address == 32'h0000_7000)) ? 1:0;
 wire [31:0] toUart;
 wire busy;
-wire Empty_out;
+//wire Empty_out;
 wire pNextWordToRead;
 reg [2:0] counter;
 wire [7:0] data;
@@ -64,7 +64,7 @@ endmodule
 
 module aFifo
   #(parameter    DATA_WIDTH    = 32,
-                 ADDRESS_WIDTH = 5,
+                 ADDRESS_WIDTH = 6,
                  FIFO_DEPTH    = (1 << ADDRESS_WIDTH))
      //Reading port
     (//output reg  [DATA_WIDTH-1:0]        Data_out,
@@ -169,7 +169,7 @@ endmodule
 
 
 module GrayCounter
-   #(parameter   COUNTER_WIDTH = 5)
+   #(parameter   COUNTER_WIDTH = 6)
    
     (output reg  [COUNTER_WIDTH-1:0]    GrayCount_out,  //'Gray' code count output.
     
